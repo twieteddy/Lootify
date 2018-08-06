@@ -8,24 +8,26 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Lootify extends JavaPlugin {
 	
-	private Logger log;
+	private Logger log = Bukkit.getLogger();
 	private Material lootboxItem = Material.CHEST;
+	private String lootboxPrefix = "§6§l";
 	
 	@Override
 	public void onEnable() {
-		log = Bukkit.getLogger();
-		
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
-		
-		log.info("Lootify enabled");
+		log.info(this.getName() + " enabled");
 	}
 	
 	@Override
 	public void onDisable() {
-		log.info("Lootify disabled");
+		log.info(this.getName() + "disabled");
 	}
 	
 	public Material getLootboxItem() {
 		return this.lootboxItem;
+	}
+	
+	public String getLootboxPrefix() {
+		return this.lootboxPrefix;
 	}
 }
