@@ -18,56 +18,40 @@ public class LootifyListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerInteractEvent(PlayerInteractEvent e) {
-		
-		e.getPlayer().sendMessage("0");
-		
+	public void onPlayerInteractEvent(PlayerInteractEvent e) {	
 		// Exit if item in our hand doesn't fit the requirements of a lootbox
-		if (e.getItem() == null
-				|| !e.getItem().getItemMeta().hasDisplayName()
-				|| !plugin.getLootboxes().stream().anyMatch(box -> box.getItemMaterial() == e.getItem().getType()))
+		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName())
 			return;
-	
-		e.getPlayer().sendMessage("1");
 		
-		// Exit if item doesn't start with predefined prefix
+		// Check if item is our lootbox
 		Lootbox lootbox = null;
-		for (Lootbox boxFromCollection : plugin.getLootboxes()) {
-			if (e.getItem().getItemMeta().getDisplayName().startsWith(boxFromCollection.getPrefix())) {
-				lootbox = boxFromCollection;
+		for (String key : plugin.getLootboxes().keySet()) {
+			if (e.getItem().getItemMeta().getDisplayName().startsWith(key)) {
+				lootbox = plugin.getLootboxes().get(key);
 				break;
 			}
-		} 
+		}
 		
-		e.getPlayer().sendMessage("2");
-		
+		// Return if no lootbox was found
 		if (lootbox == null) {
 			return;
 		}
-		
-		e.getPlayer().sendMessage("3");
-		
-		//if (!e.getItem().getItemMeta().getDisplayName().startsWith(plugin.getLootboxPrefix()))
-		//	return;
 	
-		// If our lootbox was rightclicked, it opens up
+		// If our lootbox was rightclicked in the air, it opens up
 		if (e.getAction() == Action.RIGHT_CLICK_AIR) {
 			// Play sound
 			e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-			// Create random items for lootbox inventory
-			{
-				Inventory inv = Bukkit.createInventory(null, 9, lootbox.getName());
-				inv.setItem(4, new ItemStack(Material.DIAMOND, 3));
-				
-				// TODO: Create random inventory content
-				e.getPlayer().openInventory(inv);
-			}
+			
+			// TODO: Create random items for lootbox inventory
+			Inventory inv = Bukkit.createInventory(null, 9, lootbox.getName());
+			inv.setItem(4, new ItemStack(Material.DIAMOND, 3));
+			e.getPlayer().openInventory(inv);
+			
 			// Reduce amount by 1
 			e.getItem().setAmount(e.getItem().getAmount()-1);
 		}
 		// Prevent execution of the default routine
 		e.setCancelled(true);
-		return;
 	}		
 	
 	
