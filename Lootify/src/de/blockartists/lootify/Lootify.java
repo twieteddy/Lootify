@@ -41,11 +41,22 @@ public class Lootify extends JavaPlugin {
 		config.options().copyDefaults(true);
 		saveConfig();
 		
-		// Create list of lootboxes
+		loadLootboxes();
+		loadLootboxItems();
+			
+		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
+		log("enabled");
+	}
+	
+	@Override
+	public void onDisable() {
+		log("disabled");
+	}
+	
+	public void loadLootboxes() {
 		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootboxes");
 		for (String key : lootboxConfig.getKeys(false)) {
 			ConfigurationSection currentLootbox = lootboxConfig.getConfigurationSection(key);
-			
 			Lootbox lootbox = new Lootbox(
 					currentLootbox.getString("prefix"), 
 					currentLootbox.getString("name"), 
@@ -56,8 +67,9 @@ public class Lootify extends JavaPlugin {
 			else
 				lootboxCollection.put(currentLootbox.getString("prefix"), lootbox);
 		}
-		
-		// Create List of items
+	}
+	
+	public void loadLootboxItems() {
 		ConfigurationSection lootboxItemConfig = config.getConfigurationSection("items");
 		for (String key : lootboxItemConfig.getKeys(false)) {
 			ConfigurationSection currentLootboxItem = lootboxItemConfig.getConfigurationSection(key);			
@@ -73,14 +85,6 @@ public class Lootify extends JavaPlugin {
 			else 
 				lootboxItemCollection.put(key, item);
 		}
-			
-		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
-		log("enabled");
-	}
-	
-	@Override
-	public void onDisable() {
-		log("disabled");
 	}
 	
 	public void log(String msg) {
