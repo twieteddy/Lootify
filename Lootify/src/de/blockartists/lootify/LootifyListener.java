@@ -20,13 +20,35 @@ public class LootifyListener implements Listener {
 	@EventHandler
 	public void onPlayerInteractEvent(PlayerInteractEvent e) {
 		
+		e.getPlayer().sendMessage("0");
+		
 		// Exit if item in our hand doesn't fit the requirements of a lootbox
-		if (e.getItem() == null || e.getItem().getType() != plugin.getLootboxItem()  || !e.getItem().getItemMeta().hasDisplayName())
+		if (e.getItem() == null
+				|| !e.getItem().getItemMeta().hasDisplayName()
+				|| !plugin.getLootboxes().stream().anyMatch(box -> box.getItemMaterial() == e.getItem().getType()))
 			return;
 	
+		e.getPlayer().sendMessage("1");
+		
 		// Exit if item doesn't start with predefined prefix
-		if (!e.getItem().getItemMeta().getDisplayName().startsWith(plugin.getLootboxPrefix()))
+		Lootbox lootbox = null;
+		for (Lootbox boxFromCollection : plugin.getLootboxes()) {
+			if (e.getItem().getItemMeta().getDisplayName().startsWith(boxFromCollection.getPrefix())) {
+				lootbox = boxFromCollection;
+				break;
+			}
+		} 
+		
+		e.getPlayer().sendMessage("2");
+		
+		if (lootbox == null) {
 			return;
+		}
+		
+		e.getPlayer().sendMessage("3");
+		
+		//if (!e.getItem().getItemMeta().getDisplayName().startsWith(plugin.getLootboxPrefix()))
+		//	return;
 	
 		// If our lootbox was rightclicked, it opens up
 		if (e.getAction() == Action.RIGHT_CLICK_AIR) {
@@ -34,8 +56,9 @@ public class LootifyListener implements Listener {
 			e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 			// Create random items for lootbox inventory
 			{
-				Inventory inv = Bukkit.createInventory(null, 9, plugin.getLootboxName());
+				Inventory inv = Bukkit.createInventory(null, 9, lootbox.getName());
 				inv.setItem(4, new ItemStack(Material.DIAMOND, 3));
+				
 				// TODO: Create random inventory content
 				e.getPlayer().openInventory(inv);
 			}

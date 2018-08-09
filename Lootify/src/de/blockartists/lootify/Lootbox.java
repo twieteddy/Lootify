@@ -8,6 +8,15 @@ public class Lootbox {
 	private Material itemMaterial;
 	private String textOnOpening;
 	
+	public Lootbox(String prefix, String name, Material material) {
+		
+	}
+	
+	public Lootbox(String prefix, String name, Material material, String textOnOpening) {
+		this(prefix, name, material);
+		this.textOnOpening = textOnOpening;
+	}
+	
 	public void setName(String name) {
 		this.name = name;
 	}
