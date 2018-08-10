@@ -17,12 +17,34 @@ public class Lootify extends JavaPlugin {
 	private HashMap<String, LootboxItem> lootboxItemCollection = new HashMap<>();
 	
 	@Override
-	public void onEnable() {	
+	public void onEnable() {
+		createConfigDefaults();
+		loadLootboxes();
+		loadLootboxItems();
+			
+		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
+	}
+	
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	/* 
+	 * Creates the default settings for config.yml
+	 */
+	private void createConfigDefaults() {
 		config.addDefault("category.common", "%");
 		config.addDefault("category.rare",  "30");
 		config.addDefault("category.epic",  "15");
 		config.addDefault("category.legendary",  "5");
 
+		// items need the following entries: prefix, name, textOnOpening (optional)
+		config.createSection("lootboxes");
+		// items need the following entries: name, lore, material, amount, category
+		config.createSection("items");
+		
 		config.addDefault("lootboxes.box1.prefix", "§l§b§1§r");
 		config.addDefault("lootboxes.box1.name", "§c§lLootbox");
 	
@@ -40,20 +62,12 @@ public class Lootify extends JavaPlugin {
 		
 		config.options().copyDefaults(true);
 		saveConfig();
-		
-		loadLootboxes();
-		loadLootboxItems();
-			
-		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
-		log("enabled");
 	}
 	
-	@Override
-	public void onDisable() {
-		log("disabled");
-	}
-	
-	public void loadLootboxes() {
+	/*
+	 * Load lootboxes from config.yml
+	 */
+	private void loadLootboxes() {
 		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootboxes");
 		for (String key : lootboxConfig.getKeys(false)) {
 			ConfigurationSection currentLootbox = lootboxConfig.getConfigurationSection(key);
@@ -63,13 +77,16 @@ public class Lootify extends JavaPlugin {
 					currentLootbox.getString("textOnOpening"));
 			
 			if (lootboxCollection.containsKey(key))
-				log("Lootbox " + key + " already exists");
+				logInfo("Lootbox " + key + " already exists");
 			else
 				lootboxCollection.put(currentLootbox.getString("prefix"), lootbox);
 		}
 	}
 	
-	public void loadLootboxItems() {
+	/*
+	 * Load lootbox items from config.yml
+	 */
+	private void loadLootboxItems() {
 		ConfigurationSection lootboxItemConfig = config.getConfigurationSection("items");
 		for (String key : lootboxItemConfig.getKeys(false)) {
 			ConfigurationSection currentLootboxItem = lootboxItemConfig.getConfigurationSection(key);			
@@ -81,16 +98,22 @@ public class Lootify extends JavaPlugin {
 					currentLootboxItem.getString("category"));
 			
 			if (lootboxItemCollection.containsKey(key)) 
-				log("LootboxItem " + key + " already exists");
+				logInfo("LootboxItem " + key + " already exists");
 			else 
 				lootboxItemCollection.put(key, item);
 		}
 	}
 	
-	public void log(String msg) {
+	/* 
+	 * Wrapper function for logger
+	 */
+	public void logInfo(String msg) {
 		log.info("[" + this.getName() + "] " + msg);
 	}
 	
+	/*
+	 * Retrieve our lootbox hashmap from outside
+	 */
 	public HashMap<String, Lootbox> getLootboxes() {
 		return this.lootboxCollection;
 	}

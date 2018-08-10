@@ -29,7 +29,7 @@ public class Lootbox {
 	
 	public String getPrefix() {
 		return this.prefix;
-	}
+	} 
 	
 	public void setTextOnOpening(String textOnOpening) {
 		this.textOnOpening = textOnOpening;
