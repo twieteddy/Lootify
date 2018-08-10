@@ -1,5 +1,6 @@
 package de.blockartists.lootify;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -45,21 +46,19 @@ public class Lootify extends JavaPlugin {
 		// items need the following entries: name, lore, material, amount, category
 		config.createSection("items");
 		
-		config.addDefault("lootboxes.box1.prefix", "§l§b§1§r");
-		config.addDefault("lootboxes.box1.name", "§c§lLootbox");
-	
-		config.addDefault("items.item1.name", "§b§lDiamant!");
-		config.addDefault("items.item1.lore", "§7Der ist ganz besonders");
-		config.addDefault("items.item1.material", "DIAMOND");
-		config.addDefault("items.item1.amount", 3);
-		config.addDefault("items.item1.category", "epic");
+		// If file doesn't exists, add example values
+		if (!new File("plugins/Lootify/config.yml").exists()) {
+			config.addDefault("lootboxes.box1.prefix", "§l§b§1§r");
+			config.addDefault("lootboxes.box1.name", "§c§lLootbox");
 		
-		config.addDefault("items.item2.name", "§b§lDiamant-Schwert");
-		config.addDefault("items.item2.lore", "§7Der ist ganz besonders");
-		config.addDefault("items.item2.material", "DIAMOND_SWORD");
-		config.addDefault("items.item2.amount", 1);
-		config.addDefault("items.item2.category", "legendary");
+			config.addDefault("items.item1.name", "§b§lDiamant!");
+			config.addDefault("items.item1.lore", "§7Der ist ganz besonders");
+			config.addDefault("items.item1.material", "DIAMOND");
+			config.addDefault("items.item1.amount", 3);
+			config.addDefault("items.item1.category", "epic");
+		}
 		
+		// Save to disk
 		config.options().copyDefaults(true);
 		saveConfig();
 	}
