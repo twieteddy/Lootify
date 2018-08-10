@@ -42,9 +42,9 @@ public class Lootify extends JavaPlugin {
 		config.addDefault("category.legendary",  "5");
 
 		// items need the following entries: prefix, name, textOnOpening (optional)
-		config.createSection("lootboxes");
+		config.addDefault("lootboxes", "");
 		// items need the following entries: name, lore, material, amount, category
-		config.createSection("items");
+		config.addDefault("items", "");
 		
 		// If file doesn't exists, add example values
 		if (!new File("plugins/Lootify/config.yml").exists()) {
@@ -68,17 +68,24 @@ public class Lootify extends JavaPlugin {
 	 */
 	private void loadLootboxes() {
 		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootboxes");
-		for (String key : lootboxConfig.getKeys(false)) {
-			ConfigurationSection currentLootbox = lootboxConfig.getConfigurationSection(key);
-			Lootbox lootbox = new Lootbox(
-					currentLootbox.getString("prefix"), 
-					currentLootbox.getString("name"), 
-					currentLootbox.getString("textOnOpening"));
-			
-			if (lootboxCollection.containsKey(key))
-				logInfo("Lootbox " + key + " already exists");
-			else
-				lootboxCollection.put(currentLootbox.getString("prefix"), lootbox);
+		if (lootboxConfig != null) {
+			for (String key : lootboxConfig.getKeys(false)) {
+				ConfigurationSection currentLootbox = lootboxConfig.getConfigurationSection(key);
+				Lootbox lootbox = new Lootbox(
+						currentLootbox.getString("prefix"), 
+						currentLootbox.getString("name"), 
+						currentLootbox.getString("textOnOpening"));
+				
+				if (lootboxCollection.containsKey(key)) {
+					logInfo("Lootbox " + key + " already exists");
+				} else {
+					lootboxCollection.put(currentLootbox.getString("prefix"), lootbox);
+					logInfo("Lootbox " + key + " loaded");
+				}
+				
+			}
+		} else {
+			logInfo("No lootboxes loaded");
 		}
 	}
 	
@@ -87,19 +94,22 @@ public class Lootify extends JavaPlugin {
 	 */
 	private void loadLootboxItems() {
 		ConfigurationSection lootboxItemConfig = config.getConfigurationSection("items");
-		for (String key : lootboxItemConfig.getKeys(false)) {
-			ConfigurationSection currentLootboxItem = lootboxItemConfig.getConfigurationSection(key);			
-			LootboxItem item = new LootboxItem(
-					currentLootboxItem.getString("name"),
-					currentLootboxItem.getString("lore"),
-					Material.valueOf(currentLootboxItem.getString("material")),
-					currentLootboxItem.getInt("amount"),
-					currentLootboxItem.getString("category"));
-			
-			if (lootboxItemCollection.containsKey(key)) 
-				logInfo("LootboxItem " + key + " already exists");
-			else 
-				lootboxItemCollection.put(key, item);
+		if (lootboxItemConfig != null) {
+			for (String key : lootboxItemConfig.getKeys(false)) {
+				ConfigurationSection currentLootboxItem = lootboxItemConfig.getConfigurationSection(key);			
+				LootboxItem item = new LootboxItem(
+						currentLootboxItem.getString("name"),
+						currentLootboxItem.getString("lore"),
+						Material.valueOf(currentLootboxItem.getString("material")),
+						currentLootboxItem.getInt("amount"),
+						currentLootboxItem.getString("category"));
+				
+				if (lootboxItemCollection.containsKey(key)) {
+					logInfo("LootboxItem " + key + " already exists");
+				} else { 
+					lootboxItemCollection.put(key, item);
+				}
+			}
 		}
 	}
 	
