@@ -41,6 +41,10 @@ public class LootifyListener implements Listener {
 		if (e.getAction() == Action.RIGHT_CLICK_AIR) {
 			// Play sound
 			e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+			if (lootbox.getMessage() != null) {
+				e.getPlayer().sendMessage(lootbox.getMessage());
+			}
+			
 			
 			// TODO: Create random items for lootbox inventory
 			Inventory inv = Bukkit.createInventory(null, 9, lootbox.getName());

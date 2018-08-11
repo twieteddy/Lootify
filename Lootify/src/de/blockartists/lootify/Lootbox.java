@@ -1,18 +1,27 @@
 package de.blockartists.lootify;
 
+import java.util.List;
+
+import org.bukkit.inventory.ItemStack;
+
 public class Lootbox {
 	private String name;
 	private String prefix;
-	private String textOnOpening;
+	private String message;
+	private List<ItemStack> items;
+
+	public Lootbox() {}
 	
-	public Lootbox(String prefix, String name) {
+	public Lootbox(String prefix, String name, String message) {
 		this.prefix = prefix;
 		this.name = name;
+		this.message = message;
+		this.items = null;
 	}
 	
-	public Lootbox(String prefix, String name, String textOnOpening) {
-		this(prefix, name);
-		this.textOnOpening = textOnOpening;
+	public Lootbox(String prefix, String name, String message, List<ItemStack> items) {
+		this(prefix, name, message);
+		this.items = items;
 	}
 	
 	public void setName(String name) {
@@ -31,11 +40,23 @@ public class Lootbox {
 		return this.prefix;
 	} 
 	
-	public void setTextOnOpening(String textOnOpening) {
-		this.textOnOpening = textOnOpening;
+	public void setMessage(String message) {
+		this.message = message;
 	}
 	
-	public String getTextOnOpening() {
-		return this.textOnOpening;
+	public String getMessage() {
+		return this.message;
+	}
+	
+	public List<ItemStack> getItems() {
+		return this.items;
+	}
+	
+	public void addItem(ItemStack item) {
+		this.items.add(item);
+	}
+	
+	public void createInventory() {
+		
 	}
 }

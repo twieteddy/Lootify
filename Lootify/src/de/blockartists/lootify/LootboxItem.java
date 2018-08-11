@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public class LootboxItem {
+public class LootboxItem extends ItemStack {
 	private String name;
 	private String lore;
 	private int amount;

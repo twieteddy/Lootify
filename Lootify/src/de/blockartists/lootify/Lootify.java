@@ -1,28 +1,30 @@
 package de.blockartists.lootify;
 
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Lootify extends JavaPlugin {
 	
 	private Logger log = Bukkit.getLogger();
 	private FileConfiguration config = this.getConfig();
-	private HashMap<String, Lootbox> lootboxCollection = new HashMap<>();
-	private HashMap<String, LootboxItem> lootboxItemCollection = new HashMap<>();
+	private HashMap<String, Lootbox> lootboxMap = new HashMap<>();
+	private HashMap<String, HashMap<String, ItemStack>> itemMap = new HashMap<String, HashMap<String, ItemStack>>();
 	
 	@Override
 	public void onEnable() {
-		createConfigDefaults();
-		loadLootboxes();
-		loadLootboxItems();
-			
+		loadConfig();
+		loadItemConfig();
+		loadLootboxConfig();
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
 	}
 	
@@ -32,41 +34,87 @@ public class Lootify extends JavaPlugin {
 		
 	}
 	
-	/* 
-	 * Creates the default settings for config.yml
-	 */
-	private void createConfigDefaults() {
-		config.addDefault("category.common", "%");
-		config.addDefault("category.rare",  "30");
-		config.addDefault("category.epic",  "15");
-		config.addDefault("category.legendary",  "5");
-
-		// items need the following entries: prefix, name, textOnOpening (optional)
-		config.addDefault("lootboxes", "");
-		// items need the following entries: name, lore, material, amount, category
-		config.addDefault("items", "");
+	// TODO: Rewriting config loading
+	private void loadConfig() {
+		// Create filepointer for existence check
+		File lootifyConfig = new File("plugins/Lootify/config.yml");
 		
-		// If file doesn't exists, add example values
-		if (!new File("plugins/Lootify/config.yml").exists()) {
-			config.addDefault("lootboxes.box1.prefix", "§l§b§1§r");
-			config.addDefault("lootboxes.box1.name", "§c§lLootbox");
-		
-			config.addDefault("items.item1.name", "§b§lDiamant!");
-			config.addDefault("items.item1.lore", "§7Der ist ganz besonders");
-			config.addDefault("items.item1.material", "DIAMOND");
-			config.addDefault("items.item1.amount", 3);
-			config.addDefault("items.item1.category", "epic");
-		}
-		
-		// Save to disk
-		config.options().copyDefaults(true);
-		saveConfig();
+		// Create default config file from internal config.yml resource if needed
+		if (!lootifyConfig.exists()) {
+			YamlConfiguration configFromJar = YamlConfiguration.loadConfiguration(new InputStreamReader(this.getResource("config.yml")));
+			this.config.setDefaults(configFromJar);
+			this.config.options().copyDefaults(true);
+			this.saveConfig();
+		} 
 	}
 	
-	/*
-	 * Load lootboxes from config.yml
-	 */
-	private void loadLootboxes() {
+	
+	
+	private void loadLootboxConfig() {
+		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootbox");
+		
+		// If no lootbox section was found, something wen't horribly wrong!
+		if (lootboxConfig == null) {
+			logSevere("Couldn't find config for lootboxes");
+			return;
+		}
+		
+		for (String lootboxName : lootboxConfig.getKeys(false)) {
+			// Create a config section from lootbox keyname
+			ConfigurationSection currentLootboxConfig = lootboxConfig.getConfigurationSection(lootboxName);
+			
+			// Lootbox object which we are going to fill
+			Lootbox lootbox = new Lootbox();
+			
+			// Get info from lootbox config
+			String prefix = currentLootboxConfig.getString("prefix");
+			String name = currentLootboxConfig.getString("name");
+			String message = currentLootboxConfig.getString("message");
+			List<String> items = currentLootboxConfig.getStringList("items");
+			
+			// Prefix is needed for identifying lootbox. Must be unique
+			if (prefix != null && !prefix.isEmpty() && !lootboxMap.containsKey(lootboxName)) {
+				lootbox.setPrefix(prefix);
+			} else {
+				logInfo("Skipping lootbox " + lootboxName);
+				continue;
+			}
+			
+			// Setting optional display name for lootbox shown in the upper left corner
+			if (name != null && !name.isEmpty()) {
+				lootbox.setName(name);
+			}
+			
+			// Setting optional personal player text message on opening lootbox
+			if (message != null && !message.isEmpty()) {
+				lootbox.setMessage(message);
+			}
+			
+			// Start loading items into lootbox
+			if (items != null) {
+				// itemBreadcrumb should look like this: "custom.votediamonds" or "random.?"
+				for (String itemBreadcrumb : items) {
+					String [] itemPath = itemBreadcrumb.split(".");
+					
+					// Path to item must have the length of 2
+					if (itemPath.length != 2) {
+						logInfo("Can't find item " + itemBreadcrumb);
+						continue;
+					}
+					
+					// Add possible item to lootbox
+					lootbox.addItem(itemMap.get(itemPath[0]).get(itemPath[1]));
+				}
+			}
+		}
+	}
+	
+	private void loadItemConfig() {
+		
+	}
+	
+	// TODO: Delete
+	/*private void loadLootboxes() {
 		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootboxes");
 		if (lootboxConfig != null) {
 			for (String key : lootboxConfig.getKeys(false)) {
@@ -81,6 +129,7 @@ public class Lootify extends JavaPlugin {
 				} else {
 					lootboxCollection.put(currentLootbox.getString("prefix"), lootbox);
 					logInfo("Lootbox " + key + " loaded");
+					
 				}
 				
 			}
@@ -88,10 +137,6 @@ public class Lootify extends JavaPlugin {
 			logInfo("No lootboxes loaded");
 		}
 	}
-	
-	/*
-	 * Load lootbox items from config.yml
-	 */
 	private void loadLootboxItems() {
 		ConfigurationSection lootboxItemConfig = config.getConfigurationSection("items");
 		if (lootboxItemConfig != null) {
@@ -111,20 +156,20 @@ public class Lootify extends JavaPlugin {
 				}
 			}
 		}
-	}
+	}*/
 	
-	/* 
-	 * Wrapper function for logger
-	 */
+	
+	
 	public void logInfo(String msg) {
 		log.info("[" + this.getName() + "] " + msg);
 	}
 	
-	/*
-	 * Retrieve our lootbox hashmap from outside
-	 */
+	public void logSevere(String msg) {
+		log.severe("[" + this.getName() + "] " + msg);
+	}
+	
 	public HashMap<String, Lootbox> getLootboxes() {
-		return this.lootboxCollection;
+		return this.lootboxMap;
 	}
 	
 }
