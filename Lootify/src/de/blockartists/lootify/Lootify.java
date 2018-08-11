@@ -53,7 +53,7 @@ public class Lootify extends JavaPlugin {
 	private void loadLootboxConfig() {
 		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootbox");
 		
-		// If no lootbox section was found, something wen't horribly wrong!
+		// If no lootbox section was found, something went horribly wrong!
 		if (lootboxConfig == null) {
 			logSevere("Couldn't find config for lootboxes");
 			return;
