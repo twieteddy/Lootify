@@ -1,5 +1,6 @@
 package de.blockartists.lootify;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -7,23 +8,19 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class Lootbox {
-	private String name;
-	private String prefix;
-	private String message;
-	private List<ItemStack> items;
-
-	public Lootbox() {}
+	private String name = null;
+	private String prefix = null;
+	private String message = null;
+	private List<LootboxItem> items = new ArrayList<>();
 	
 	public Lootbox(String prefix, String name, String message) {
 		this.prefix = prefix;
-		this.name = name;
-		this.message = message;
-		this.items = null;
-	}
-	
-	public Lootbox(String prefix, String name, String message, List<ItemStack> items) {
-		this(prefix, name, message);
-		this.items = items;
+		
+		if (name != null && !name.isEmpty())
+			this.name = name;
+		
+		if (message != null && !message.isEmpty())
+			this.message = message;
 	}
 	
 	public void setName(String name) {
@@ -50,15 +47,19 @@ public class Lootbox {
 		return this.message;
 	}
 	
-	public List<ItemStack> getItems() {
+	public List<LootboxItem> getItems() {
 		return this.items;
 	}
 	
-	public void addItem(ItemStack item) {
+	public void addItem(LootboxItem item) {
 		this.items.add(item);
 	}
 	
 	public Inventory createInventory() {
-		return Bukkit.createInventory(null,  9, this.getName());
+		Inventory inventory = Bukkit.createInventory(null,  9, this.getName());
+		
+		
+		
+		return inventory;
 	}
 }

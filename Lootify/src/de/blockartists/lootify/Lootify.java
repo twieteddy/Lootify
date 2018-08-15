@@ -2,11 +2,16 @@ package de.blockartists.lootify;
 
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -17,14 +22,15 @@ public class Lootify extends JavaPlugin {
 	
 	private Logger log = Bukkit.getLogger();
 	private FileConfiguration config = this.getConfig();
-	private HashMap<String, Lootbox> lootboxMap = new HashMap<>();
-	private HashMap<String, HashMap<String, ItemStack>> itemMap = new HashMap<String, HashMap<String, ItemStack>>();
+	private Map<String, Lootbox> lootboxMap = new HashMap<>();
+	private Map<String, Map<String, ItemStack>> itemMap = new HashMap<>();
+	private Map<String, Integer> itemWeightMap = new HashMap<String, Integer>();
 	
 	@Override
 	public void onEnable() {
 		loadConfig();
-		loadItemConfig();
-		loadLootboxConfig();
+		loadItems();
+		loadLootboxes();
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
 	}
 	
@@ -34,7 +40,6 @@ public class Lootify extends JavaPlugin {
 		
 	}
 	
-	// TODO: Rewriting config loading
 	private void loadConfig() {
 		// Create filepointer for existence check
 		File lootifyConfig = new File("plugins/Lootify/config.yml");
@@ -50,12 +55,12 @@ public class Lootify extends JavaPlugin {
 	
 	
 	
-	private void loadLootboxConfig() {
+	private void loadLootboxes() {
 		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootbox");
 		
 		// If no lootbox section was found, something went horribly wrong!
 		if (lootboxConfig == null) {
-			logSevere("Couldn't find config for lootboxes");
+			severe("Couldn't find config for lootboxes");
 			return;
 		}
 		
@@ -72,11 +77,11 @@ public class Lootify extends JavaPlugin {
 			String message = currentLootboxConfig.getString("message");
 			List<String> items = currentLootboxConfig.getStringList("items");
 			
-			// Prefix is needed for identifying lootbox. Must be unique
+			// Prefix is needed to identify lootbox. Must be unique
 			if (prefix != null && !prefix.isEmpty() && !lootboxMap.containsKey(lootboxName)) {
 				lootbox.setPrefix(prefix);
 			} else {
-				logInfo("Skipping lootbox " + lootboxName);
+				info("Skipping lootbox " + lootboxName);
 				continue;
 			}
 			
@@ -92,83 +97,92 @@ public class Lootify extends JavaPlugin {
 			
 			// Start loading items into lootbox
 			if (items != null) {
-				// itemBreadcrumb should look like this: "custom.votediamonds" or "random.?"
-				for (String itemBreadcrumb : items) {
-					String [] itemPath = itemBreadcrumb.split(".");
+				// itemFQDN should look like this: "custom.votediamonds" or "random.?"
+				for (String itemFQDN : items) {
+					String [] path = itemFQDN.split("\\.");
 					
 					// Path to item must have the length of 2
-					if (itemPath.length != 2) {
-						logInfo("Can't find item " + itemBreadcrumb);
+					if (path.length != 2) {
+						info("Can't find item " + itemFQDN);
 						continue;
 					}
 					
-					// Add possible item to lootbox
-					lootbox.addItem(itemMap.get(itemPath[0]).get(itemPath[1]));
+					lootbox.addItem(itemMap.get(path[0]).get(path[1]));
 				}
 			}
 		}
 	}
 	
-	private void loadItemConfig() {
+	private void loadItems() {
+		ConfigurationSection itemsConfig = config.getConfigurationSection("items");
 		
-	}
-	
-	// TODO: Delete
-	/*private void loadLootboxes() {
-		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootboxes");
-		if (lootboxConfig != null) {
-			for (String key : lootboxConfig.getKeys(false)) {
-				ConfigurationSection currentLootbox = lootboxConfig.getConfigurationSection(key);
-				Lootbox lootbox = new Lootbox(
-						currentLootbox.getString("prefix"), 
-						currentLootbox.getString("name"), 
-						currentLootbox.getString("textOnOpening"));
+		// No items? Well, that's bad.
+		if (itemsConfig == null) {
+			severe("Couldn't find config for items");
+			return;
+		}
+		
+		
+		// Get all item pools from item config.
+		for (String pool : itemsConfig.getKeys(false)) {
+			// Get pool config
+			ConfigurationSection poolConfig = itemsConfig.getConfigurationSection(pool);
+			
+			// Create a new HashMap for items
+			this.itemMap.put(pool, new LinkedHashMap<String, ItemStack>());
+			info("Pool " + pool + " created");
+			
+			// Get every item from pool
+			for (String itemName : poolConfig.getKeys(false)) {
+				ConfigurationSection itemConfig = poolConfig.getConfigurationSection(itemName);
 				
-				if (lootboxCollection.containsKey(key)) {
-					logInfo("Lootbox " + key + " already exists");
-				} else {
-					lootboxCollection.put(currentLootbox.getString("prefix"), lootbox);
-					logInfo("Lootbox " + key + " loaded");
-					
+				String name = itemConfig.getString("name");
+				String lore = itemConfig.getString("lore");
+				String material = itemConfig.getString("material");
+				int amount = itemConfig.getInt("amount");
+				int weight = itemConfig.getInt("weight");
+				
+				// Check material
+				if (material == null || Material.getMaterial(material.toUpperCase()) == null) {
+					severe(String.format("Couldn't find material \"%s\" for item \"%s\"", material, itemName));
+					continue;
 				}
 				
-			}
-		} else {
-			logInfo("No lootboxes loaded");
+				// Adjust to stack size
+				if (amount < 1) {
+					amount = 1;
+				} else if (amount > 64) {
+					amount = 64;
+				}
+				
+				// Item is creatable now
+				ItemStack item = new ItemStack(Material.getMaterial(material.toUpperCase()), amount);
+
+				// Check for custom name information and set if needed
+				if (name != null && !name.isEmpty()) {
+					item.getItemMeta().setDisplayName(name);
+				}
+				
+				// Check for custom lore information and set if needed
+				if (lore != null && !lore.isEmpty()) {
+					item.getItemMeta().setLore(Arrays.asList(lore));
+				}
+				
+				this.itemMap.get(pool).put(itemName,  item);
+				info("Item " + itemName + " added to pool " + pool);
+			}			
 		}
 	}
-	private void loadLootboxItems() {
-		ConfigurationSection lootboxItemConfig = config.getConfigurationSection("items");
-		if (lootboxItemConfig != null) {
-			for (String key : lootboxItemConfig.getKeys(false)) {
-				ConfigurationSection currentLootboxItem = lootboxItemConfig.getConfigurationSection(key);			
-				LootboxItem item = new LootboxItem(
-						currentLootboxItem.getString("name"),
-						currentLootboxItem.getString("lore"),
-						Material.valueOf(currentLootboxItem.getString("material")),
-						currentLootboxItem.getInt("amount"),
-						currentLootboxItem.getString("category"));
-				
-				if (lootboxItemCollection.containsKey(key)) {
-					logInfo("LootboxItem " + key + " already exists");
-				} else { 
-					lootboxItemCollection.put(key, item);
-				}
-			}
-		}
-	}*/
 	
-	
-	
-	public void logInfo(String msg) {
+	public void info(String msg) {
 		log.info("[" + this.getName() + "] " + msg);
 	}
 	
-	public void logSevere(String msg) {
+	public void severe(String msg) {
 		log.severe("[" + this.getName() + "] " + msg);
 	}
 	
-	public HashMap<String, Lootbox> getLootboxes() {
+	public Map<String, Lootbox> getLootboxes() {
 		return this.lootboxMap;
 	}
 	

@@ -45,11 +45,8 @@ public class LootifyListener implements Listener {
 				e.getPlayer().sendMessage(lootbox.getMessage());
 			}
 			
-			
-			// TODO: Create random items for lootbox inventory
-			Inventory inv = Bukkit.createInventory(null, 9, lootbox.getName());
-			inv.setItem(4, new ItemStack(Material.DIAMOND, 3));
-			e.getPlayer().openInventory(inv);
+			// Open inventory of lootbox with random stuff
+			e.getPlayer().openInventory(lootbox.createInventory());
 			
 			// Reduce amount by 1
 			e.getItem().setAmount(e.getItem().getAmount()-1);
