@@ -15,7 +15,6 @@ lootbox:
       - random.?
       - random.?
       - random.?
-################################################################################
 items: # top level
   random: # unique category name
     sword_tier_1: # unique item name

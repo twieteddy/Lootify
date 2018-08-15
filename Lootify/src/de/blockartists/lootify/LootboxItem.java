@@ -51,6 +51,10 @@ public class LootboxItem {
 		this.weight = weight;
 	}
 	
+	public int getWeight() {
+		return this.weight;
+	}
+	
 	// Create ItemStack from this blueprint
 	public ItemStack create() {
 		if (this.type == null && !this.type.equalsIgnoreCase("air"))

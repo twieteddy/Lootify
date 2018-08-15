@@ -37,17 +37,15 @@ public class LootifyListener implements Listener {
 		e.setCancelled(true);
 		
 		// Only accept rightclicked main hand items
-		if (e.getAction() != Action.RIGHT_CLICK_AIR || e.getHand() != EquipmentSlot.HAND) {
-			return;
-		}
+		if (e.getAction() != Action.RIGHT_CLICK_AIR || e.getHand() != EquipmentSlot.HAND)
+			return;	
 		
 		// Play sound
 		e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 		
 		// Display text message to player if it was set
-		if (lootbox.getMessage() != null && lootbox.getMessage().length() > 0) {
+		if (lootbox.getMessage() != null && lootbox.getMessage().length() > 0)
 			e.getPlayer().sendMessage(lootbox.getMessage());
-		}
 		
 		// Open inventory of lootbox with random stuff
 		e.getPlayer().openInventory(lootbox.createInventory());
