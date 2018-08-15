@@ -8,8 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,9 +20,8 @@ public class Lootify extends JavaPlugin {
 	
 	private Logger log = Bukkit.getLogger();
 	private FileConfiguration config = this.getConfig();
-	private Map<String, Lootbox> lootboxMap = new HashMap<>();
+	private Map<String, Lootbox> lootboxes = new HashMap<>();
 	private Map<String, Map<String, ItemStack>> itemMap = new HashMap<>();
-	private Map<String, Integer> itemWeightMap = new HashMap<String, Integer>();
 	
 	@Override
 	public void onEnable() {
@@ -64,12 +61,9 @@ public class Lootify extends JavaPlugin {
 			return;
 		}
 		
-		for (String lootboxName : lootboxConfig.getKeys(false)) {
+		for (String boxKey : lootboxConfig.getKeys(false)) {
 			// Create a config section from lootbox keyname
-			ConfigurationSection currentLootboxConfig = lootboxConfig.getConfigurationSection(lootboxName);
-			
-			// Lootbox object which we are going to fill
-			Lootbox lootbox = new Lootbox();
+			ConfigurationSection currentLootboxConfig = lootboxConfig.getConfigurationSection(boxKey);
 			
 			// Get info from lootbox config
 			String prefix = currentLootboxConfig.getString("prefix");
@@ -77,41 +71,27 @@ public class Lootify extends JavaPlugin {
 			String message = currentLootboxConfig.getString("message");
 			List<String> items = currentLootboxConfig.getStringList("items");
 			
-			// Prefix is needed to identify lootbox. Must be unique
-			if (prefix != null && !prefix.isEmpty() && !lootboxMap.containsKey(lootboxName)) {
-				lootbox.setPrefix(prefix);
-			} else {
-				info("Skipping lootbox " + lootboxName);
+			// Continue with next box if prefix already exists
+			if (prefix == null || prefix.isEmpty() || lootboxes.containsKey(prefix)) {
+				info("Lootbox " + boxKey + " already exists");
 				continue;
 			}
 			
-			// Setting optional display name for lootbox shown in the upper left corner
-			if (name != null && !name.isEmpty()) {
-				lootbox.setName(name);
+			// Check if lootbox has items
+			if (items == null || items.size() == 0) {
+				info("Lootbox " + boxKey + " has no items");
+				continue;
 			}
 			
-			// Setting optional personal player text message on opening lootbox
-			if (message != null && !message.isEmpty()) {
-				lootbox.setMessage(message);
-			}
-			
-			// Start loading items into lootbox
-			if (items != null) {
-				// itemFQDN should look like this: "custom.votediamonds" or "random.?"
-				for (String itemFQDN : items) {
-					String [] path = itemFQDN.split("\\.");
-					
-					// Path to item must have the length of 2
-					if (path.length != 2) {
-						info("Can't find item " + itemFQDN);
-						continue;
-					}
-					
-					lootbox.addItem(itemMap.get(path[0]).get(path[1]));
-				}
-			}
+			// Create new lootbox after sanity checks
+			Lootbox lootbox = new Lootbox(prefix, name, message, items);
+			lootboxes.put(prefix, lootbox);
+			info("Lootbox " + name + " added");
 		}
 	}
+	
+	
+	
 	
 	private void loadItems() {
 		ConfigurationSection itemsConfig = config.getConfigurationSection("items");
@@ -183,7 +163,32 @@ public class Lootify extends JavaPlugin {
 	}
 	
 	public Map<String, Lootbox> getLootboxes() {
-		return this.lootboxMap;
+		return this.lootboxes;
 	}
 	
+	// Replaces essentials 
+	public static String replaceFormat(String s) {
+		return s.replace("&0", "§0")
+				.replace("&1", "§1")
+				.replace("&2", "§2")
+				.replace("&3", "§3")
+				.replace("&4", "§4")
+				.replace("&5", "§5")
+				.replace("&6", "§6")
+				.replace("&7", "§7")
+				.replace("&8", "§8")
+				.replace("&9", "§9")
+				.replace("&a", "§a")
+				.replace("&b", "§b")
+				.replace("&c", "§c")
+				.replace("&d", "§d")
+				.replace("&e", "§e")
+				.replace("&f", "§f")
+				.replace("&l", "§l")
+				.replace("&n", "§m")
+				.replace("&o", "§o")
+				.replace("&k", "§k")
+				.replace("&m", "§m")
+				.replace("&r", "§r");
+	}
 }

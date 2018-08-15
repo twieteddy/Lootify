@@ -27,11 +27,13 @@ public class LootboxItem {
 		
 		// Override default values;
 		if (name != null && !name.isEmpty())
-			this.name = name;
+			this.name = Lootify.replaceFormat(name);
 
 		// Set lore if given
-		if (lore != null && lore.size() > 0)
+		if (lore != null && lore.size() > 0) {
+			lore.forEach(line -> line = Lootify.replaceFormat(line));
 			this.lore = lore;
+		}
 		
 		// Set type
 		if (type != null && !type.equalsIgnoreCase("air"))

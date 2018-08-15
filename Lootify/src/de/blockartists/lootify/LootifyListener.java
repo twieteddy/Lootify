@@ -1,14 +1,10 @@
 package de.blockartists.lootify;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
 public class LootifyListener implements Listener {
 	private Lootify plugin;
@@ -23,7 +19,7 @@ public class LootifyListener implements Listener {
 		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName())
 			return;
 		
-		// Check if item is our lootbox
+		// Check if item is our lootbox and store it
 		Lootbox lootbox = null;
 		for (String key : plugin.getLootboxes().keySet()) {
 			if (e.getItem().getItemMeta().getDisplayName().startsWith(key)) {
@@ -32,30 +28,27 @@ public class LootifyListener implements Listener {
 			}
 		}
 		
-		// Return if no lootbox was found
-		if (lootbox == null) {
+		// Return if no lootbox was found or action mismatches
+		if (lootbox == null || e.getAction() != Action.RIGHT_CLICK_AIR)
 			return;
+
+		// Play sound
+		e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+		
+		// Display text message to player if it was set
+		if (lootbox.getMessage() != null || lootbox.getMessage().length() != 0) {
+			e.getPlayer().sendMessage(lootbox.getMessage());
 		}
-	
-		// If our lootbox was rightclicked in the air, it opens up
-		if (e.getAction() == Action.RIGHT_CLICK_AIR) {
-			// Play sound
-			e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-			if (lootbox.getMessage() != null) {
-				e.getPlayer().sendMessage(lootbox.getMessage());
-			}
 			
-			// Open inventory of lootbox with random stuff
-			e.getPlayer().openInventory(lootbox.createInventory());
-			
-			// Reduce amount by 1
-			e.getItem().setAmount(e.getItem().getAmount()-1);
-		}
+		// Open inventory of lootbox with random stuff
+		e.getPlayer().openInventory(lootbox.createInventory());
+		
+		// Reduce amount by 1
+		e.getItem().setAmount(e.getItem().getAmount()-1);
+
 		// Prevent execution of the default routine
 		e.setCancelled(true);
-	}		
-	
-	
+	}
 }
 
 	
