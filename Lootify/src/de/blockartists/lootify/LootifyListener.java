@@ -14,7 +14,7 @@ public class LootifyListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerInteractEvent(PlayerInteractEvent e) {	
+	public void onPlayerInteractEvent(PlayerInteractEvent e) {
 		// Exit if item in our hand doesn't fit the requirements of a lootbox
 		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName())
 			return;
@@ -29,25 +29,29 @@ public class LootifyListener implements Listener {
 		}
 		
 		// Return if no lootbox was found or action mismatches
-		if (lootbox == null || e.getAction() != Action.RIGHT_CLICK_AIR)
+		if (lootbox == null)
 			return;
-
+		
+		// Cancel default routine
+		e.setCancelled(true);
+		
+		if (e.getAction() != Action.RIGHT_CLICK_AIR) {
+			return;
+		}
+		
 		// Play sound
 		e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 		
 		// Display text message to player if it was set
-		if (lootbox.getMessage() != null || lootbox.getMessage().length() != 0) {
+		if (lootbox.getMessage() != null && lootbox.getMessage().length() > 0) {
 			e.getPlayer().sendMessage(lootbox.getMessage());
 		}
-			
+		
 		// Open inventory of lootbox with random stuff
 		e.getPlayer().openInventory(lootbox.createInventory());
 		
 		// Reduce amount by 1
 		e.getItem().setAmount(e.getItem().getAmount()-1);
-
-		// Prevent execution of the default routine
-		e.setCancelled(true);
 	}
 }
 

@@ -85,7 +85,7 @@ public class Lootify extends JavaPlugin {
 			
 			// Create new lootbox after sanity checks
 			Lootbox lootbox = new Lootbox(prefix, name, message, items);
-			lootboxes.put(prefix, lootbox);
+			lootboxes.put(replaceFormat(prefix), lootbox);
 			info("Lootbox " + name + " added");
 		}
 	}
