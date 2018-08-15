@@ -2,6 +2,8 @@ package de.blockartists.lootify;
 
 import java.util.List;
 
+import org.bukkit.Bukkit;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class Lootbox {
@@ -56,7 +58,7 @@ public class Lootbox {
 		this.items.add(item);
 	}
 	
-	public void createInventory() {
-		
+	public Inventory createInventory() {
+		return Bukkit.createInventory(null,  9, this.getName());
 	}
 }
