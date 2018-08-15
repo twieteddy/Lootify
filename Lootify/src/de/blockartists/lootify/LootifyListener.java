@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 public class LootifyListener implements Listener {
 	private Lootify plugin;
@@ -35,7 +36,8 @@ public class LootifyListener implements Listener {
 		// Cancel default routine
 		e.setCancelled(true);
 		
-		if (e.getAction() != Action.RIGHT_CLICK_AIR) {
+		// Only accept rightclicked main hand items
+		if (e.getAction() != Action.RIGHT_CLICK_AIR || e.getHand() != EquipmentSlot.HAND) {
 			return;
 		}
 		
@@ -51,7 +53,7 @@ public class LootifyListener implements Listener {
 		e.getPlayer().openInventory(lootbox.createInventory());
 		
 		// Reduce amount by 1
-		e.getItem().setAmount(e.getItem().getAmount()-1);
+		e.getItem().setAmount(e.getItem().getAmount()-1);	
 	}
 }
 
