@@ -2,6 +2,7 @@ package de.blockartists.lootify;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,13 +18,13 @@ public class Lootbox {
 	private static Map<String, Map<String, LootboxItem>> itemBlueprints = new HashMap<>();
 	
 	public Lootbox(String prefix, String name, String message, List<String> items) {
-		this.prefix = Lootify.replaceFormat(prefix);
+		this.prefix = prefix;
 		
 		if (name != null && !name.isEmpty())
-			this.name = Lootify.replaceFormat(name);
+			this.name = name;
 		
 		if (message != null && !message.isEmpty())
-			this.message = Lootify.replaceFormat(message);
+			this.message = message;
 		
 		if (items != null && items.size() > 0) 
 			this.items = items;
@@ -47,43 +48,42 @@ public class Lootbox {
 		
 		if (!itemBlueprints.get(pool).containsKey(name)) 
 			itemBlueprints.get(pool).put(name, item);
-		
 	}
 	
-		
+	public static Map<String, Map<String, LootboxItem>> getBlueprints() {
+		return itemBlueprints;
+	}
+	
+	// TODO: Make it safe
 	public Inventory createInventory() {
 		Inventory inventory = Bukkit.createInventory(null,  9, this.getName());
-		
-		/*
+				
 		for (String item : items) {
 			String [] path = item.split("\\.");
 			String pool = path[0];
 			String name = path[1];
 			
-			if (name.equals("?")) {
-				// Sum weight of all lootbox items in category
+			if (!name.equals("?")) {
+				inventory.addItem(itemBlueprints.get(pool).get(name).create());
+			} else {
 				int maxWeight = itemBlueprints.get(pool).values().stream().mapToInt(LootboxItem::getWeight).sum();
+				int random = ThreadLocalRandom.current().nextInt(maxWeight);
 				int lifted = 0;
-				int random = ThreadLocalRandom.current().nextInt(lifted, maxWeight);
 				
-				for (LootboxItem boxItem : itemBlueprints.get(pool).values()) {
-					int weight = boxItem.getWeight();
-					if (random >= lifted && random < lifted + weight) {
-						inventory.addItem(boxItem.create());
+				Iterator<LootboxItem> iter = itemBlueprints.get(pool).values().iterator();
+				
+				while (iter.hasNext()) {
+					LootboxItem box = iter.next();
+					
+					if ((random >= lifted) && (random < lifted + box.getWeight())) {
+						inventory.addItem(box.create());
 						break;
 					} else {
-						lifted += weight;
-					}
+						lifted += box.getWeight();
+					}		
 				}
-			} else {
-				inventory.addItem(itemBlueprints.get(pool).get(name).create());
 			}
-			
-		}*/
-		
+		}
 		return inventory;
 	}
-	
-	
-	
 }

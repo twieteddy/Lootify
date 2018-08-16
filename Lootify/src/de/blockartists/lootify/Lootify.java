@@ -2,6 +2,7 @@ package de.blockartists.lootify;
 
 import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Lootify extends JavaPlugin {
 	
-	private Logger log = Bukkit.getLogger();
+	private Logger logger = Bukkit.getLogger();
 	private FileConfiguration config = this.getConfig();
 	private Map<String, Lootbox> lootboxes = new HashMap<>();
 	
@@ -23,7 +24,7 @@ public class Lootify extends JavaPlugin {
 		loadConfig();
 		loadItems();
 		loadLootboxes();
-		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
+		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);		
 	}
 	
 	@Override public void onDisable() {}
@@ -34,8 +35,11 @@ public class Lootify extends JavaPlugin {
 		
 		// Create default config file from internal config.yml resource if needed
 		if (!lootifyConfig.exists()) {
-			YamlConfiguration configFromJar = 
-					YamlConfiguration.loadConfiguration(new InputStreamReader(this.getResource("config.yml")));
+			YamlConfiguration configFromJar = YamlConfiguration.loadConfiguration(
+					new InputStreamReader(
+							this.getResource("config.yml"),
+							Charset.forName("UTF-8")
+							));
 			this.config.setDefaults(configFromJar);
 			this.config.options().copyDefaults(true);
 			this.saveConfig();
@@ -75,8 +79,8 @@ public class Lootify extends JavaPlugin {
 			
 			// Create new lootbox after sanity checks
 			Lootbox lootbox = new Lootbox(prefix, name, message, items);
-			lootboxes.put(replaceFormat(prefix), lootbox);
-			info("Lootbox " + name + " added");
+			lootboxes.put(prefix, lootbox);
+			info("Lootbox " + boxKey + " added");
 		}
 	}
 	
@@ -104,49 +108,22 @@ public class Lootify extends JavaPlugin {
 				
 				// Create new lootbox blueprint and add it
 				LootboxItem boxItem = new LootboxItem(name, lore, material, amount, weight);
-				Lootbox.addBlueprint(pool, name, boxItem);
+				Lootbox.addBlueprint(pool, itemKey, boxItem);
 								
-				//this.items.get(pool).put(itemName,  itemStack);
 				info("Item " + itemKey + " added to pool " + pool);
 			}			
 		}
 	}
 	
 	public void info(String msg) {
-		log.info("[" + this.getName() + "] " + msg);
+		logger.info("[" + this.getName() + "] " + msg);
 	}
 	
 	public void severe(String msg) {
-		log.severe("[" + this.getName() + "] " + msg);
+		logger.severe("[" + this.getName() + "] " + msg);
 	}
 	
 	public Map<String, Lootbox> getLootboxes() {
 		return this.lootboxes;
-	}
-		
-	// Replaces essentials text format 
-	public static String replaceFormat(String s) {
-		return s.replace("&0", "§0")
-				.replace("&1", "§1")
-				.replace("&2", "§2")
-				.replace("&3", "§3")
-				.replace("&4", "§4")
-				.replace("&5", "§5")
-				.replace("&6", "§6")
-				.replace("&7", "§7")
-				.replace("&8", "§8")
-				.replace("&9", "§9")
-				.replace("&a", "§a")
-				.replace("&b", "§b")
-				.replace("&c", "§c")
-				.replace("&d", "§d")
-				.replace("&e", "§e")
-				.replace("&f", "§f")
-				.replace("&l", "§l")
-				.replace("&n", "§m")
-				.replace("&o", "§o")
-				.replace("&k", "§k")
-				.replace("&m", "§m")
-				.replace("&r", "§r");
 	}
 }

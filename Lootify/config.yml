@@ -1,39 +1,43 @@
 lootbox:
   votebox: # unique lootbox name
-    prefix: "&l&b&1&r" # unique identifier for your lootbox
-    name: "&6&lVotebox" # name displayed in your inventory
-    message: "&6Du hast eine &eVotebox&6 geöffnet!" # optional display message
-    items: # item list. dereference via <CATEGORY>.<ITEM> from list below
-      - custom.votediamonds
-      - custom.votebottles
+    prefix: "§l§b§1§r" # unique identifier for your lootbox
+    name: "§6§lVotebox" # name displayed in your inventory
+    message: "§6Du hast eine §eVotebox§6 geöffnet!" # optional display message
+    items: # item list. dereference via <POOL>.<ITEM> from list below
+      - "custom.votediamonds"
+      - "custom.votebottles"
   jahresbox:
-    prefix: "&l&b&2&r"
-    name: "&3Jahresbox"
+    prefix: "§l§b§2§r"
+    name: "§3Jahresbox"
     message: ""
     items:
-      - random.?
-      - random.?
-      - random.?
-      - random.?
-items: # top level
-  random: # unique category name
+      - "random.?"
+      - "random.?"
+      - "random.?"
+      - "random.?"
+items: # top level with item pools
+  random: # item pool name. can be any name
     sword_tier_1: # unique item name
-      lore: "Ein stinknormales Schwert" # optionl item lore
-      material: iron_sword # mandatory material
+      lore:
+        - "§7Ein stinknormales Schwert" # optionl item lore
+      material: "iron_sword" # mandatory material
       amount: 1 # optional amount, default = 1
       weight: 80 # mandatory weight. the heavier, the higher chance
     sword_tier_2:
-      name: "&bWhuuh, Shiny!" # optional name
-      material: diamond_sword
+      name: "§bWhuuh, Shiny!" # optional name
+      material: "diamond_sword"
       amount: 1
       weight: 20
   custom: # custom items for fixed use
     votediamonds:
-      name: ""
-      lore: "&eVote-Belohnung"
-      material: diamond
+      name: "§b§lVote-Diamanten!"
+      lore:
+        - "§eVote-Belohnung"
+      material: "diamond"
       amount: 3
     votebottles:
-      lore: "&eVote-Belohnung"
-      material: exp_bottle
+      name: "§e§lXP-Flaschis"
+      lore:
+        - "§eVote-Belohnung"
+      material: "exp_bottle"
       amount: 16

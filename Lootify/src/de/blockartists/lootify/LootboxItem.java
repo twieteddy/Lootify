@@ -27,11 +27,10 @@ public class LootboxItem {
 		
 		// Override default values;
 		if (name != null && !name.isEmpty())
-			this.name = Lootify.replaceFormat(name);
+			this.name = name;
 
 		// Set lore if given
 		if (lore != null && lore.size() > 0) {
-			lore.forEach(line -> line = Lootify.replaceFormat(line));
 			this.lore = lore;
 		}
 		
@@ -55,23 +54,37 @@ public class LootboxItem {
 		return this.weight;
 	}
 	
+	@Override
+	public String toString() {
+		return "Name: " + this.name 
+				+ ", Lore: " + this.lore.toString() 
+				+ ", Type: " + this.type 
+				+ ", Amount: " + this.amount
+				+ ", Weight: " + this.weight;
+	}
+	
 	// Create ItemStack from this blueprint
 	public ItemStack create() {
-		if (this.type == null && !this.type.equalsIgnoreCase("air"))
+		if (this.type == null)
 			return null;
-
-		// Create item from material and set amount
+		
+		// Create item from material and get meta
 		ItemStack item = new ItemStack(Material.getMaterial(type.toUpperCase()));
 		ItemMeta meta = item.getItemMeta();
+		
+		// Set amount
 		item.setAmount(this.amount);
 		
 		// Set optional name
 		if (this.name != null && !this.name.isEmpty())
-			meta.setDisplayName(name);
+			meta.setDisplayName(this.name);
 		
 		// Set optional lore
-		if (this.lore.size() > 0)
+		if (this.lore != null && this.lore.size() > 0)
 			meta.setLore(this.lore);
+		
+		// Set new meta
+		item.setItemMeta(meta);
 		
 		return item;
 	}	
