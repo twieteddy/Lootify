@@ -1,5 +1,6 @@
 package de.blockartists.lootify;
 
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
 
 import org.bukkit.event.EventHandler;
@@ -45,13 +46,16 @@ public class LootifyListener implements Listener {
 		e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 		
 		// Display text message to player if it was set
-		if (lootbox.getMessage() != null && lootbox.getMessage().length() > 0) {
+		if (lootbox.getMessage() != null && !lootbox.getMessage().isEmpty()) {
 			e.getPlayer().sendMessage(lootbox.getMessage());
 		}
 		
 		// Open inventory of lootbox and reduce stack amount by 1
 		e.getPlayer().openInventory(lootbox.createInventory(e.getItem().getItemMeta().getDisplayName()));
-		e.getItem().setAmount(e.getItem().getAmount()-1);	
+		
+		if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
+			e.getItem().setAmount(e.getItem().getAmount()-1);	
+		}
 	}
 }
 

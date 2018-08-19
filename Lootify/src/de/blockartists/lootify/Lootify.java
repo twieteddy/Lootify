@@ -1,16 +1,12 @@
 package de.blockartists.lootify;
 
-import java.io.File;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import org.bukkit.Bukkit;
+
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -19,113 +15,136 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Lootify extends JavaPlugin {
+	private LootifyLogger log = null;
 	
-	public static final int DEFAULT_WEIGHT = 1;
-	public static final int DEFAULT_AMOUNT = 1;
+	private LootifyConfig configYml = null;
+	private LootifyConfig itemsYml = null;
+	private LootifyConfig lootboxesYml = null;
 	
-	private LootifyLogger log = new LootifyLogger(this.getName());
-	private FileConfiguration config = this.getConfig();
-	private Map<String, Lootbox> lootboxes = new HashMap<>();
+	private Map<String, Lootbox> lootboxes = null;
+	private Map<String, Map<String, LootboxItem>> items = null;
 	
+
 	@Override
 	public void onEnable() {
-		loadConfig();
-		loadItems();
+		log = new LootifyLogger(this.getName());
+		
+		configYml = new LootifyConfig(this, "config.yml");
+		itemsYml = new LootifyConfig(this, "items.yml");
+		lootboxesYml = new LootifyConfig(this, "lootboxes.yml");
+		
+		lootboxes = new HashMap<>();
+		items = new HashMap<>();
+		
+		addDefaultItemExample();
+		addDefaultLootboxExample();
+		
 		loadLootboxes();
-		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);		
+		loadItems();
+		
+		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
+		getCommand("lootify").setExecutor(new LootifyCommandExecutor(this));
 	}
 	
 	@Override public void onDisable() {}
 	
-	private void loadConfig() {
-		// Create filepointer for existence check
-		File lootifyConfig = new File("plugins/Lootify/config.yml");
+	private void addDefaultItemExample() {
+		ItemStack itemStack = new ItemStack(Material.DIAMOND_AXE);
+			itemStack.setAmount(1);
+			itemStack.addEnchantment(Enchantment.SILK_TOUCH, 1);
+			itemStack.addUnsafeEnchantment(Enchantment.DURABILITY, 10);
+			itemStack.setDurability(itemStack.getDurability());		
 		
-		// Create default config file from internal config.yml resource if needed
-		if (!lootifyConfig.exists()) {
-			YamlConfiguration configFromJar = YamlConfiguration.loadConfiguration(
-					new InputStreamReader(
-							this.getResource("config.yml"),
-							Charset.forName("UTF-8")
-							));
-			this.config.setDefaults(configFromJar);
-			this.config.options().copyDefaults(true);
-			this.saveConfig();
-		} 
+		ItemMeta itemMeta = itemStack.getItemMeta();		
+			itemMeta.setDisplayName("§2§lBeispiel-Axt");
+			itemMeta.setLore(Arrays.asList("§aDas dient nur", "§aals Beispiel"));
+			itemMeta.setUnbreakable(true);
+			itemMeta.addEnchant(Enchantment.DIG_SPEED, 5, false);
+			itemMeta.addEnchant(Enchantment.DAMAGE_ALL, 10, true);
+			itemMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+		
+		itemStack.setItemMeta(itemMeta);
+			
+		itemsYml.getConfig().addDefault("examplepool.exampleaxe", itemStack);
+		itemsYml.copyDefaults(true);
+		itemsYml.save();
+		
+		configYml.getConfig().addDefault("examplepool.exampleaxe", 1);
+		configYml.copyDefaults(true);
+		configYml.save();
+	}
+	
+	private void addDefaultLootboxExample() {
+		String identifier = "§l§b§1§r";
+		String message = "§6Du hast eine §eVotebox§6 geöffnet!";
+		List<String> items = new java.util.ArrayList<>(Arrays.asList("examplepool.exampleaxe"));
+		
+		lootboxesYml.getConfig().addDefault("examplebox.identifier", identifier);
+		lootboxesYml.getConfig().addDefault("examplebox.message", message);
+		lootboxesYml.getConfig().addDefault("examplebox.items", items);
+		
+		lootboxesYml.copyDefaults(true);
+		lootboxesYml.save();
 	}
 	
 	private void loadLootboxes() {
-		ConfigurationSection lootboxConfig = config.getConfigurationSection("lootbox");
+		YamlConfiguration lootboxesCfg = lootboxesYml.getConfig();
 		
-		// If no lootbox section was found, something went horribly wrong!
-		if (lootboxConfig == null) {
-			log.severe("Couldn't find config for lootboxes");
-			return;
-		}
-		
-		for (String boxKey : lootboxConfig.getKeys(false)) {
+		for (String box : lootboxesCfg.getKeys(false)) {
 			// Create a config section from lootbox keyname
-			ConfigurationSection currentLootboxConfig = lootboxConfig.getConfigurationSection(boxKey);
+			ConfigurationSection lootboxCfg = lootboxesCfg.getConfigurationSection(box);
 			
 			// Get info from lootbox config
-			String prefix = currentLootboxConfig.getString("prefix");
-			String name = currentLootboxConfig.getString("name");
-			String message = currentLootboxConfig.getString("message");
-			List<String> items = currentLootboxConfig.getStringList("items");
+			String identifier = lootboxCfg.getString("identifier", "");
+			String message = lootboxCfg.getString("message", "");
+			List<String> items = lootboxCfg.getStringList("items");
 
 			// Prefix needed as id
-			if (prefix.isEmpty()) {
-				log.info("Prefix not specified");
+			if (identifier.isEmpty()) {
+				log.info("Skipping lootbox " + box + ". Prefix is empty");
 				continue;
 			}
 			
 			// Continue with next box if prefix already exists
-			if (lootboxes.containsKey(prefix)) {
-				log.info("Lootbox " + boxKey + " already exists");
+			if (lootboxes.containsKey(identifier)) {
+				log.info("Skipping lootbox " + box + ". Key already exists");
 				continue;
 			}
 			
 			// Check if lootbox has items
 			if (items.isEmpty()) {
-				log.info("Lootbox " + boxKey + " has no items");
+				log.info("Skipping lootbox " + box + ". It has no items");
 				continue;
 			}
 			
 			// Create new lootbox after sanity checks
-			lootboxes.put(prefix, new Lootbox(prefix, name, message, items));
+			lootboxes.put(identifier, new Lootbox(this, identifier, message, items));
 		}
 	}
 	
 	private void loadItems() {
-		ConfigurationSection itemsConfig = config.getConfigurationSection("items");
-		
-		// No items? Well, that's bad.
-		if (itemsConfig == null) {
-			log.severe("Couldn't find config section for items");
-			return;
-		}
-		
-		// Get all item pools from item config.
-		for (String pool : itemsConfig.getKeys(false)) {			
-			ConfigurationSection poolConfig = itemsConfig.getConfigurationSection(pool);
+		YamlConfiguration itemsCfg = itemsYml.getConfig();
+		YamlConfiguration configCfg = configYml.getConfig();
+				
+		// Deserialize item stack into hashmap
+		for (String pool : itemsCfg.getKeys(false)) {
 
-			for (String itemKey : poolConfig.getKeys(false)) {
-				ConfigurationSection itemConfig = poolConfig.getConfigurationSection(itemKey);
-				
-				String name = itemConfig.getString("name");
-				List<String> lore = itemConfig.getStringList("lore");
-				String material = itemConfig.getString("material");
-				int amount = itemConfig.getInt("amount", DEFAULT_AMOUNT);
-				int weight = itemConfig.getInt("weight", DEFAULT_WEIGHT);
-				
-				// Create new lootbox blueprint and add it
-				LootboxItem boxItem = new LootboxItem(name, lore, material, amount, weight);
-				Lootbox.addBlueprint(pool, itemKey, boxItem);
-			}			
+			// Get pool name
+			ConfigurationSection poolCfg = itemsCfg.getConfigurationSection(pool);
+			
+			// Create pool in hashmap
+			items.put(pool, new HashMap<String, LootboxItem>()); 
+			
+			// Fill pool with items
+			for (String itemKey : poolCfg.getKeys(false)) {
+				int weight = configCfg.getInt(pool + "." + itemKey, 1);
+				LootboxItem item = new LootboxItem(poolCfg.getItemStack(itemKey), weight);
+				items.get(pool).put(itemKey, item);
+			}
 		}
 	}
 		
-	public Map<String, Lootbox> getLootboxes() {
-		return this.lootboxes;
-	}
+	public LootifyLogger getLootifyLogger() { return this.log; }
+	public Map<String, Lootbox> getLootboxes() { return this.lootboxes; }
+	public Map<String, Map<String, LootboxItem>> getItems() { return this.items; }
 }
