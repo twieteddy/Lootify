@@ -1,6 +1,7 @@
 package de.blockartists.lootify;
 
 import org.bukkit.Sound;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -17,8 +18,7 @@ public class LootifyListener implements Listener {
 	@EventHandler
 	public void onPlayerInteractEvent(PlayerInteractEvent e) {
 		// Exit if item in our hand doesn't fit the requirements of a lootbox
-		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName())
-			return;
+		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName()) { return; }
 		
 		// Check if item is our lootbox and store it
 		Lootbox lootbox = null;
@@ -30,27 +30,27 @@ public class LootifyListener implements Listener {
 		}
 		
 		// Return if no lootbox was found or action mismatches
-		if (lootbox == null)
-			return;
+		if (lootbox == null) { 
+			return; 
+		}
 		
-		// Cancel default routine
+		// Cancel if lootbox was found and continue if it was rightclicked in the air
 		e.setCancelled(true);
 		
-		// Only accept rightclicked main hand items
-		if (e.getAction() != Action.RIGHT_CLICK_AIR || e.getHand() != EquipmentSlot.HAND)
-			return;	
+		if (e.getAction() != Action.RIGHT_CLICK_AIR || e.getHand() != EquipmentSlot.HAND) { 
+			return; 
+		}	
 		
 		// Play sound
 		e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 		
 		// Display text message to player if it was set
-		if (lootbox.getMessage() != null && lootbox.getMessage().length() > 0)
+		if (lootbox.getMessage() != null && lootbox.getMessage().length() > 0) {
 			e.getPlayer().sendMessage(lootbox.getMessage());
+		}
 		
-		// Open inventory of lootbox with random stuff
-		e.getPlayer().openInventory(lootbox.createInventory());
-		
-		// Reduce amount by 1
+		// Open inventory of lootbox and reduce stack amount by 1
+		e.getPlayer().openInventory(lootbox.createInventory(e.getItem().getItemMeta().getDisplayName()));
 		e.getItem().setAmount(e.getItem().getAmount()-1);	
 	}
 }

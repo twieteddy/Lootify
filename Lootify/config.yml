@@ -22,7 +22,7 @@ items: # top level with item pools
         - "§7Ein stinknormales Schwert" # optionl item lore
       material: "iron_sword" # mandatory material
       amount: 1 # optional amount, default = 1
-      weight: 80 # mandatory weight. the heavier, the higher chance
+      weight: 80 # mandatory weight. the heavier, the higher the chance
     sword_tier_2:
       name: "§bWhuuh, Shiny!" # optional name
       material: "diamond_sword"

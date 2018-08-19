@@ -1,58 +1,28 @@
 package de.blockartists.lootify;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public class LootboxItem {
+public class LootboxItem extends ItemStack {
 	private String name;
 	private List<String> lore;
 	private String type;
 	private int amount;
 	private int weight;
-	
-	private LootboxItem() {
-		// Default values
-		this.name = null;
-		this.lore = null;
-		this.type = null;
-		this.amount = 1;
-		this.weight = 0;
-	}
-	
-	public LootboxItem(String name, List<String> lore, String type, int amount, int weight) {
-		this();
-		
-		// Override default values;
-		if (name != null && !name.isEmpty())
-			this.name = name;
 
-		// Set lore if given
-		if (lore != null && lore.size() > 0) {
-			this.lore = lore;
-		}
-		
-		// Set type
-		if (type != null && !type.equalsIgnoreCase("air"))
-			this.type = type;
-		
-		// Fix MIN and MAX stack size
-		if (amount > 64)
-			this.amount = 64;
-		else if (amount < 1)
-			this.amount = 1;
-		else 
-			this.amount = amount;
-		
-		// Set weight
-		this.weight = weight;
+	public LootboxItem(String name, List<String> lore, String type, int amount, int weight) {
+		this.name = (name == null) ?  "" : this.name;
+		this.lore = (lore == null) ? new ArrayList<String>() : this.lore;
+		this.type = (type == null) ? "AIR" : this.type;
+		this.amount = (amount > 64 || amount < 1) ? 1 : amount;
+		this.weight = (weight < 1) ? 1 : weight;
 	}
 	
-	public int getWeight() {
-		return this.weight;
-	}
+	public int getWeight() { return this.weight; }
 	
 	@Override
 	public String toString() {
@@ -65,10 +35,11 @@ public class LootboxItem {
 	
 	// Create ItemStack from this blueprint
 	public ItemStack create() {
-		if (this.type == null)
+		Material material = Material.getMaterial(this.type);
+		
+		if (material == null || material == Material.AIR) 
 			return null;
 		
-		// Create item from material and get meta
 		ItemStack item = new ItemStack(Material.getMaterial(type.toUpperCase()));
 		ItemMeta meta = item.getItemMeta();
 		

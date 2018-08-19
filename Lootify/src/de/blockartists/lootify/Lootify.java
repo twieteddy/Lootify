@@ -8,14 +8,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Lootify extends JavaPlugin {
 	
-	private Logger logger = Bukkit.getLogger();
+	public static final int DEFAULT_WEIGHT = 1;
+	public static final int DEFAULT_AMOUNT = 1;
+	
+	private LootifyLogger log = new LootifyLogger(this.getName());
 	private FileConfiguration config = this.getConfig();
 	private Map<String, Lootbox> lootboxes = new HashMap<>();
 	
@@ -51,7 +59,7 @@ public class Lootify extends JavaPlugin {
 		
 		// If no lootbox section was found, something went horribly wrong!
 		if (lootboxConfig == null) {
-			severe("Couldn't find config for lootboxes");
+			log.severe("Couldn't find config for lootboxes");
 			return;
 		}
 		
@@ -64,23 +72,27 @@ public class Lootify extends JavaPlugin {
 			String name = currentLootboxConfig.getString("name");
 			String message = currentLootboxConfig.getString("message");
 			List<String> items = currentLootboxConfig.getStringList("items");
+
+			// Prefix needed as id
+			if (prefix.isEmpty()) {
+				log.info("Prefix not specified");
+				continue;
+			}
 			
 			// Continue with next box if prefix already exists
-			if (prefix == null || prefix.isEmpty() || lootboxes.containsKey(prefix)) {
-				info("Lootbox " + boxKey + " already exists");
+			if (lootboxes.containsKey(prefix)) {
+				log.info("Lootbox " + boxKey + " already exists");
 				continue;
 			}
 			
 			// Check if lootbox has items
-			if (items == null || items.size() == 0) {
-				info("Lootbox " + boxKey + " has no items");
+			if (items.isEmpty()) {
+				log.info("Lootbox " + boxKey + " has no items");
 				continue;
 			}
 			
 			// Create new lootbox after sanity checks
-			Lootbox lootbox = new Lootbox(prefix, name, message, items);
-			lootboxes.put(prefix, lootbox);
-			info("Lootbox " + boxKey + " added");
+			lootboxes.put(prefix, new Lootbox(prefix, name, message, items));
 		}
 	}
 	
@@ -89,7 +101,7 @@ public class Lootify extends JavaPlugin {
 		
 		// No items? Well, that's bad.
 		if (itemsConfig == null) {
-			severe("Couldn't find config section for items");
+			log.severe("Couldn't find config section for items");
 			return;
 		}
 		
@@ -103,26 +115,16 @@ public class Lootify extends JavaPlugin {
 				String name = itemConfig.getString("name");
 				List<String> lore = itemConfig.getStringList("lore");
 				String material = itemConfig.getString("material");
-				int amount = itemConfig.getInt("amount");
-				int weight = itemConfig.getInt("weight");
+				int amount = itemConfig.getInt("amount", DEFAULT_AMOUNT);
+				int weight = itemConfig.getInt("weight", DEFAULT_WEIGHT);
 				
 				// Create new lootbox blueprint and add it
 				LootboxItem boxItem = new LootboxItem(name, lore, material, amount, weight);
 				Lootbox.addBlueprint(pool, itemKey, boxItem);
-								
-				info("Item " + itemKey + " added to pool " + pool);
 			}			
 		}
 	}
-	
-	public void info(String msg) {
-		logger.info("[" + this.getName() + "] " + msg);
-	}
-	
-	public void severe(String msg) {
-		logger.severe("[" + this.getName() + "] " + msg);
-	}
-	
+		
 	public Map<String, Lootbox> getLootboxes() {
 		return this.lootboxes;
 	}
