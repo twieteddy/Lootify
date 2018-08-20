@@ -6,7 +6,6 @@ import java.io.IOException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class LootifyConfig {
-	//private Lootify lootify = null;
 	private LootifyLogger log = null;
 	
 	private YamlConfiguration config = null;

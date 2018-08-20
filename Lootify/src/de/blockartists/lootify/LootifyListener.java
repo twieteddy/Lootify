@@ -10,22 +10,24 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 public class LootifyListener implements Listener {
-	private Lootify plugin;
+	private Lootify lootify;
 	
-	public LootifyListener(Lootify plugin) {
-		this.plugin = plugin;
+	public LootifyListener(Lootify lootify) {
+		this.lootify = lootify;
 	}
 	
 	@EventHandler
 	public void onPlayerInteractEvent(PlayerInteractEvent e) {
 		// Exit if item in our hand doesn't fit the requirements of a lootbox
-		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName()) { return; }
+		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName()) { 
+			return; 
+		}
 		
 		// Check if item is our lootbox and store it
 		Lootbox lootbox = null;
-		for (String key : plugin.getLootboxes().keySet()) {
+		for (String key : lootify.getLootboxes().keySet()) {
 			if (e.getItem().getItemMeta().getDisplayName().startsWith(key)) {
-				lootbox = plugin.getLootboxes().get(key);
+				lootbox = lootify.getLootboxes().get(key);
 				break;
 			}
 		}
@@ -50,9 +52,10 @@ public class LootifyListener implements Listener {
 			e.getPlayer().sendMessage(lootbox.getMessage());
 		}
 		
-		// Open inventory of lootbox and reduce stack amount by 1
+		// Open inventory of lootbox
 		e.getPlayer().openInventory(lootbox.createInventory(e.getItem().getItemMeta().getDisplayName()));
 		
+		// Reduce stack size by 1 if not in creative mode
 		if (e.getPlayer().getGameMode() != GameMode.CREATIVE) {
 			e.getItem().setAmount(e.getItem().getAmount()-1);	
 		}

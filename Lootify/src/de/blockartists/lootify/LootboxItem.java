@@ -12,5 +12,5 @@ public class LootboxItem {
 	}
 	
 	public int getWeight() { return this.weight; }
-	public ItemStack getItemStack() { return this.itemStack; }
+	public ItemStack getItemStack() { return this.itemStack; }	
 }

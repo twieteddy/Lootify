@@ -1,5 +1,6 @@
 package de.blockartists.lootify;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,29 +19,31 @@ public class Lootify extends JavaPlugin {
 	private LootifyLogger log = null;
 	
 	private LootifyConfig configYml = null;
-	private LootifyConfig itemsYml = null;
 	private LootifyConfig lootboxesYml = null;
+	private ItemsConfig itemsConfig = null;
 	
 	private Map<String, Lootbox> lootboxes = null;
-	private Map<String, Map<String, LootboxItem>> items = null;
 	
-
 	@Override
 	public void onEnable() {
 		log = new LootifyLogger(this.getName());
 		
 		configYml = new LootifyConfig(this, "config.yml");
-		itemsYml = new LootifyConfig(this, "items.yml");
 		lootboxesYml = new LootifyConfig(this, "lootboxes.yml");
+		itemsConfig = new ItemsConfig(this);
 		
 		lootboxes = new HashMap<>();
-		items = new HashMap<>();
 		
-		addDefaultItemExample();
-		addDefaultLootboxExample();
+		String.join(File.separator, 
+				this.getDataFolder().getName(), 
+				"items", 
+				"item.yml");
 		
+		addItemExample();
+		addLootboxExample();
 		loadLootboxes();
-		loadItems();
+		
+		log.info(lootboxes.size() + " lootboxes added");
 		
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
 		getCommand("lootify").setExecutor(new LootifyCommandExecutor(this));
@@ -48,7 +51,8 @@ public class Lootify extends JavaPlugin {
 	
 	@Override public void onDisable() {}
 	
-	private void addDefaultItemExample() {
+	// Temporary
+	private void addItemExample() {
 		ItemStack itemStack = new ItemStack(Material.DIAMOND_AXE);
 			itemStack.setAmount(1);
 			itemStack.addEnchantment(Enchantment.SILK_TOUCH, 1);
@@ -65,16 +69,18 @@ public class Lootify extends JavaPlugin {
 		
 		itemStack.setItemMeta(itemMeta);
 			
-		itemsYml.getConfig().addDefault("examplepool.exampleaxe", itemStack);
-		itemsYml.copyDefaults(true);
-		itemsYml.save();
 		
-		configYml.getConfig().addDefault("examplepool.exampleaxe", 1);
-		configYml.copyDefaults(true);
-		configYml.save();
+		itemsConfig.createItem("examplepool.exampleaxe", itemStack, 10);
+		itemsConfig.createItem("examplepool.exampleaxe2", itemStack, 15);
+		itemsConfig.createItem("examplepool.exampleaxe3", itemStack, 20);
+		itemsConfig.createItem("rootaxe", itemStack, 1);
+		
+		itemsConfig.deleteItem("examplepool.exampleaxe3");
 	}
 	
-	private void addDefaultLootboxExample() {
+	
+	// Temporary
+	private void addLootboxExample() {
 		String identifier = "§l§b§1§r";
 		String message = "§6Du hast eine §eVotebox§6 geöffnet!";
 		List<String> items = new java.util.ArrayList<>(Arrays.asList("examplepool.exampleaxe"));
@@ -99,15 +105,15 @@ public class Lootify extends JavaPlugin {
 			String message = lootboxCfg.getString("message", "");
 			List<String> items = lootboxCfg.getStringList("items");
 
-			// Prefix needed as id
+			// Make sure that identifier is not empty
 			if (identifier.isEmpty()) {
-				log.info("Skipping lootbox " + box + ". Prefix is empty");
+				log.info("Skipping lootbox " + box + ". Identifier is empty");
 				continue;
 			}
 			
-			// Continue with next box if prefix already exists
+			// Continue with next box if index already exists
 			if (lootboxes.containsKey(identifier)) {
-				log.info("Skipping lootbox " + box + ". Key already exists");
+				log.info("Skipping lootbox " + box + ". Identifier already exists");
 				continue;
 			}
 			
@@ -121,30 +127,10 @@ public class Lootify extends JavaPlugin {
 			lootboxes.put(identifier, new Lootbox(this, identifier, message, items));
 		}
 	}
-	
-	private void loadItems() {
-		YamlConfiguration itemsCfg = itemsYml.getConfig();
-		YamlConfiguration configCfg = configYml.getConfig();
-				
-		// Deserialize item stack into hashmap
-		for (String pool : itemsCfg.getKeys(false)) {
-
-			// Get pool name
-			ConfigurationSection poolCfg = itemsCfg.getConfigurationSection(pool);
-			
-			// Create pool in hashmap
-			items.put(pool, new HashMap<String, LootboxItem>()); 
-			
-			// Fill pool with items
-			for (String itemKey : poolCfg.getKeys(false)) {
-				int weight = configCfg.getInt(pool + "." + itemKey, 1);
-				LootboxItem item = new LootboxItem(poolCfg.getItemStack(itemKey), weight);
-				items.get(pool).put(itemKey, item);
-			}
-		}
-	}
 		
 	public LootifyLogger getLootifyLogger() { return this.log; }
+	public LootifyConfig getConfigYml() { return this.configYml; }
+	public LootifyConfig getLootboxesYml() { return this.lootboxesYml; }
+	public ItemsConfig getItemsConfig() { return this.itemsConfig; }
 	public Map<String, Lootbox> getLootboxes() { return this.lootboxes; }
-	public Map<String, Map<String, LootboxItem>> getItems() { return this.items; }
 }
