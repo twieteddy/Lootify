@@ -187,7 +187,7 @@ public class ItemsConfig {
 	
 	
 	/**
-	 * Deltes a file by uri
+	 * Deletes a file by uri
 	 * @param itemUri
 	 * @return
 	 */
