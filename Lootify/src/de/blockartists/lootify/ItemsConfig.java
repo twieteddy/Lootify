@@ -2,12 +2,15 @@ package de.blockartists.lootify;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -40,8 +43,7 @@ public class ItemsConfig {
 				+ uri.replace(".", File.separator)
 				+ FILE_EXTENSION;
 		
-		File file = new File(path);
-		return (file.exists()) ? file : null;
+		return new File(path);
 	}
 
 	/**
@@ -49,14 +51,16 @@ public class ItemsConfig {
 	 * @param path
 	 * @return
 	 */
-	private List<File> getFilesInDirectory(String path) {
-		String uri = lootify.getDataFolder().getPath()
+	private List<File> getFilesInDirectory(String uri) {
+		String path = lootify.getDataFolder().getPath()
 				+ File.separator 
 				+ SUBDIRECTORY 
 				+ File.separator
-				+ path.replace(".", File.separator);			
+				+ uri.replace(".", File.separator);			
 		
-		File file = new File(uri);
+		log.info("getFilesInDirectory():" + path);
+		
+		File file = new File(path);
 		List<File> files = (List<File>) FileUtils.listFiles(
 				file, 
 				new WildcardFileFilter("*" + FILE_EXTENSION), 
@@ -70,18 +74,39 @@ public class ItemsConfig {
 	 * @param path
 	 * @return
 	 */
-	private File getRandomDirectory(File file) {
+	private File getRandomDirectory(String uri) {
+		String path = lootify.getDataFolder().getPath()
+				+ File.separator
+				+ SUBDIRECTORY
+				+ File.separator
+				+ uri.replace(".", File.separator);
 		
-		return new File("");
+		log.info("getRandomDirectory():" + path);
+		
+		File[] dirs = new File(path).listFiles(File::isDirectory); 
+		return dirs[ThreadLocalRandom.current().nextInt(dirs.length)]; // Random directory
 	}
 	
 	/**
 	 * Returns a random file in directory
 	 * @return
 	 */
-	private File getRandomFile() {
+	private File getRandomFile(String uri) {
+		String path = lootify.getDataFolder().getPath()
+				+ File.separator
+				+ SUBDIRECTORY
+				+ File.separator
+				+ uri.replace(".", File.separator);
 		
-		return new File("");
+		log.info("getRandomFile(): " + path);
+		
+		File file = new File(path);
+		List<File> files = (List<File>) FileUtils.listFiles(
+				file.getAbsoluteFile(),
+				new WildcardFileFilter("*" + FILE_EXTENSION), 
+				null);
+		
+		return files.get(ThreadLocalRandom.current().nextInt(files.size())); // Random file
 	}
 	
 	/**
@@ -90,20 +115,43 @@ public class ItemsConfig {
 	 * @return
 	 */
 	public LootboxItem getItem(String uri) {
+		
+		if (uri.contains("?")) {
+			StringBuilder newUri = new StringBuilder();
+			
+			List<String> fragments = Arrays.asList(uri.split("\\."));
+			Iterator<String> iter = fragments.iterator();
+			
+			while(iter.hasNext()) {
+				String fragment = iter.next();
+				
+				if (fragment.equals("?")) {
+					fragment = FilenameUtils.removeExtension(this.getRandomFile(newUri.toString()).getName());
+				}
+				
+				newUri.append(fragment);
+				
+				if (iter.hasNext()) {
+					newUri.append(".");
+				}
+			}
+			uri = newUri.toString();
+		}
+		
+		log.info(uri);
+		
 		// Return cached item
 		if (cache.containsKey(uri)) {
 			return cache.get(uri);
 		}
 		
-		YamlConfiguration itemConfig = YamlConfiguration.loadConfiguration(this.getFileByUri(uri));
-		
+		YamlConfiguration config = YamlConfiguration.loadConfiguration(this.getFileByUri(uri));
 		LootboxItem item = new LootboxItem(
-				itemConfig.getItemStack("item"), 
-				itemConfig.getInt("weight"));
+				config.getItemStack("item"), 
+				config.getInt("weight"));
 		
 		// Cache file for later use
 		cache.put(uri, item);
-		
 		return item;
 	}
 	

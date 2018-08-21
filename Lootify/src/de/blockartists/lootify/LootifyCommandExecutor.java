@@ -23,6 +23,7 @@ public class LootifyCommandExecutor implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		
+		// Instance check
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(MESSAGE_WRONG_INSTANCE);
 			return false;
@@ -34,14 +35,12 @@ public class LootifyCommandExecutor implements CommandExecutor {
 			return false;
 		}
 		
-		
 		if (args.length < 3) {
 			sender.sendMessage(MESSAGE_NOT_ENOUGH_ARGS);
 			return false;
 		}
 
 		Player player = (Player)sender;
-		
 		
 		/**
 		 * args[0] = <item|lootbox>
