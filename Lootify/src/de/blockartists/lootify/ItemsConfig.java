@@ -2,6 +2,7 @@ package de.blockartists.lootify;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -58,8 +59,6 @@ public class ItemsConfig {
 				+ File.separator
 				+ uri.replace(".", File.separator);			
 		
-		log.info("getFilesInDirectory():" + path);
-		
 		File file = new File(path);
 		List<File> files = (List<File>) FileUtils.listFiles(
 				file, 
@@ -71,27 +70,10 @@ public class ItemsConfig {
 	
 	/**
 	 * 
-	 * @param path
+	 * @param uri
 	 * @return
 	 */
-	private File getRandomDirectory(String uri) {
-		String path = lootify.getDataFolder().getPath()
-				+ File.separator
-				+ SUBDIRECTORY
-				+ File.separator
-				+ uri.replace(".", File.separator);
-		
-		log.info("getRandomDirectory():" + path);
-		
-		File[] dirs = new File(path).listFiles(File::isDirectory); 
-		return dirs[ThreadLocalRandom.current().nextInt(dirs.length)]; // Random directory
-	}
-	
-	/**
-	 * Returns a random file in directory
-	 * @return
-	 */
-	private File getRandomFile(String uri) {
+	private LootboxItem getRandomItem(String uri) {
 		String path = lootify.getDataFolder().getPath()
 				+ File.separator
 				+ SUBDIRECTORY
@@ -106,7 +88,31 @@ public class ItemsConfig {
 				new WildcardFileFilter("*" + FILE_EXTENSION), 
 				null);
 		
-		return files.get(ThreadLocalRandom.current().nextInt(files.size())); // Random file
+		
+		List<LootboxItem> items = new ArrayList<>();
+		for (File f : files) {
+			String newUri = uri + "." + FilenameUtils.removeExtension(f.getName());
+			log.info("getRandomItem(): newUri: " + newUri);
+			items.add(getItem(newUri));
+		}
+
+		Iterator<LootboxItem> iter = items.iterator();
+		LootboxItem randomItem = null;
+		int random = ThreadLocalRandom.current().nextInt(items.size());
+		int lifted = 0;
+		
+		while (iter.hasNext()) {
+			LootboxItem item = iter.next();
+			
+			if ((random >= lifted) && (random < lifted + item.getWeight())) {
+				randomItem = item;
+				break;
+			} else {
+				lifted += item.getWeight();
+			}		
+		}
+		
+		return randomItem;
 	}
 	
 	/**
@@ -115,30 +121,14 @@ public class ItemsConfig {
 	 * @return
 	 */
 	public LootboxItem getItem(String uri) {
+		String[] fragments = uri.split("\\.");
+		String lastFragment = fragments[fragments.length - 1];
 		
-		if (uri.contains("?")) {
-			StringBuilder newUri = new StringBuilder();
-			
-			List<String> fragments = Arrays.asList(uri.split("\\."));
-			Iterator<String> iter = fragments.iterator();
-			
-			while(iter.hasNext()) {
-				String fragment = iter.next();
-				
-				if (fragment.equals("?")) {
-					fragment = FilenameUtils.removeExtension(this.getRandomFile(newUri.toString()).getName());
-				}
-				
-				newUri.append(fragment);
-				
-				if (iter.hasNext()) {
-					newUri.append(".");
-				}
-			}
-			uri = newUri.toString();
+		if (lastFragment.equals("?")) {
+			String newUri = String.join(".", Arrays.copyOfRange(fragments, 0, fragments.length - 1));
+			log.info("getItem(), newUri: " + newUri);
+			return getRandomItem(newUri);
 		}
-		
-		log.info(uri);
 		
 		// Return cached item
 		if (cache.containsKey(uri)) {
@@ -181,7 +171,6 @@ public class ItemsConfig {
 			log.severe("Couldn't save " + file.getPath());
 			return false;
 		}
-		
 		return true;
 	}
 	
@@ -208,40 +197,3 @@ public class ItemsConfig {
 	}
 	
 }
-
-
-
-/*
-for (int i = 0; i < steps.length; i++) {
-
-	if (steps[i].equals("?")) {	// Replace ? with a random file or directory
-		
-		File file = new File(uri.toString());
-		// If question mark isn't in the last position, treat it as a directory
-		if (i < steps.length-1) {
-			// Has to be tested
-			List<File> dirs = Arrays.asList(file.listFiles(File::isDirectory));
-			File random = dirs.get(ThreadLocalRandom.current().nextInt(dirs.size()));
-			uri.append(random.getName());
-		} else { // Else treat it was a file
-			List<File> files = (List<File>) FileUtils.listFiles(
-					file.getAbsoluteFile(),
-					new WildcardFileFilter("*" + FILE_EXTENSION), 
-					null);
-			File random = files.get(ThreadLocalRandom.current().nextInt(files.size()));
-			steps[i] = FilenameUtils.removeExtension(random.getName());
-			uri.append(steps[i]);
-		}
-		
-	} else {
-		uri.append(steps[i]);
-	}
-	
-	
-	// Append file separator or file extension
-	if (i < (steps.length - 1)) {
-		uri.append(File.separator);
-	} else {
-		uri.append(FILE_EXTENSION); 
-	}
-}*/
