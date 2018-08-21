@@ -46,34 +46,13 @@ public class ItemsConfig {
 		
 		return new File(path);
 	}
-
-	/**
-	 * Returns all regular *.yml files from directory by uri (e.g. examplepool.subpool)
-	 * @param path
-	 * @return
-	 */
-	private List<File> getFilesInDirectory(String uri) {
-		String path = lootify.getDataFolder().getPath()
-				+ File.separator 
-				+ SUBDIRECTORY 
-				+ File.separator
-				+ uri.replace(".", File.separator);			
-		
-		File file = new File(path);
-		List<File> files = (List<File>) FileUtils.listFiles(
-				file, 
-				new WildcardFileFilter("*" + FILE_EXTENSION), 
-				null);
-		
-		return files;
-	}
 	
 	/**
 	 * 
 	 * @param uri
 	 * @return
 	 */
-	private LootboxItem getRandomItem(String uri) {
+	private LootboxItem getRandomItemFromPool(String uri) {
 		String path = lootify.getDataFolder().getPath()
 				+ File.separator
 				+ SUBDIRECTORY
@@ -81,10 +60,10 @@ public class ItemsConfig {
 				+ uri.replace(".", File.separator);
 		
 		log.info("getRandomFile(): " + path);
-		
+			
 		File file = new File(path);
 		List<File> files = (List<File>) FileUtils.listFiles(
-				file.getAbsoluteFile(),
+				file,
 				new WildcardFileFilter("*" + FILE_EXTENSION), 
 				null);
 		
@@ -92,17 +71,19 @@ public class ItemsConfig {
 		List<LootboxItem> items = new ArrayList<>();
 		for (File f : files) {
 			String newUri = uri + "." + FilenameUtils.removeExtension(f.getName());
-			log.info("getRandomItem(): newUri: " + newUri);
 			items.add(getItem(newUri));
 		}
 
-		Iterator<LootboxItem> iter = items.iterator();
-		LootboxItem randomItem = null;
-		int random = ThreadLocalRandom.current().nextInt(items.size());
+		int maxWeight = items.stream().mapToInt(LootboxItem::getWeight).sum();
+		int random = ThreadLocalRandom.current().nextInt(maxWeight);
 		int lifted = 0;
 		
+		LootboxItem randomItem = null;
+		Iterator<LootboxItem> iter = items.iterator();
 		while (iter.hasNext()) {
 			LootboxItem item = iter.next();
+			
+			log.info("lifted: " + lifted); 
 			
 			if ((random >= lifted) && (random < lifted + item.getWeight())) {
 				randomItem = item;
@@ -125,9 +106,8 @@ public class ItemsConfig {
 		String lastFragment = fragments[fragments.length - 1];
 		
 		if (lastFragment.equals("?")) {
-			String newUri = String.join(".", Arrays.copyOfRange(fragments, 0, fragments.length - 1));
-			log.info("getItem(), newUri: " + newUri);
-			return getRandomItem(newUri);
+			String poolUri = String.join(".", Arrays.copyOfRange(fragments, 0, fragments.length - 1));
+			return getRandomItemFromPool(poolUri);
 		}
 		
 		// Return cached item

@@ -43,11 +43,14 @@ public class LootifyCommandExecutor implements CommandExecutor {
 		Player player = (Player)sender;
 		
 		/**
-		 * args[0] = <item|lootbox>
+		 * args[0] = <item|lootbox<reload>
 		 * args[1] = <list|create|delete>
 		 * args[2] = <path.to.item>
 		 * args[3] = [weight]
 		 */
+		
+		if (args[0].equalsIgnoreCase("reload"));
+		
 		if (args[0].equalsIgnoreCase("item")) { 
 			switch(args[1].toLowerCase()) {
 			
