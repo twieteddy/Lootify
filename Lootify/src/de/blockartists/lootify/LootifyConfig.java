@@ -40,13 +40,7 @@ public class LootifyConfig {
 		}
 	}
 	
-	public void copyDefaults(boolean valuesFromDefaultConfig) {
-		config.options().copyDefaults(valuesFromDefaultConfig);
-	}
-	
-	public void reload() {
-		config = YamlConfiguration.loadConfiguration(file);
-	}
-	
+	public void copyDefaults(boolean valuesFromDefaultConfig) {config.options().copyDefaults(valuesFromDefaultConfig);}
+	public void reload() { config = YamlConfiguration.loadConfiguration(file); }
 	public YamlConfiguration getConfig() { return this.config; }
 }

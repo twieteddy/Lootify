@@ -1,6 +1,5 @@
 package de.blockartists.lootify;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -33,12 +32,7 @@ public class Lootify extends JavaPlugin {
 		itemsConfig = new ItemsConfig(this);
 		
 		lootboxes = new HashMap<>();
-		
-		String.join(File.separator, 
-				this.getDataFolder().getName(), 
-				"items", 
-				"item.yml");
-		
+				
 		addItemExample();
 		addLootboxExample();
 		loadLootboxes();
