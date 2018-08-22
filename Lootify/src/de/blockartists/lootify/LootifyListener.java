@@ -21,7 +21,7 @@ public class LootifyListener implements Listener {
 		// Exit if item in our hand doesn't fit the requirements of a lootbox
 		if (e.getItem() == null || !e.getItem().getItemMeta().hasDisplayName()) { 
 			return; 
-		}
+		} 
 		
 		// Check if item is our lootbox and store it
 		Lootbox lootbox = null;

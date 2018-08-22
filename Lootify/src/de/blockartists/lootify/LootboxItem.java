@@ -1,4 +1,4 @@
-package de.blockartists.lootify;
+package de.blockartists.lootify; 
 
 import org.bukkit.inventory.ItemStack;
 

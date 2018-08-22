@@ -37,7 +37,7 @@ public class Lootbox {
 		lootify.getLootboxesYml().getConfig().set(name + ".identifier", identifier);
 		lootify.getLootboxesYml().getConfig().set(name + ".message", message);
 		lootify.getLootboxesYml().getConfig().set(name + ".items", items);
-		lootify.getLootboxesYml().save();
+		lootify.getLootboxesYml().save(); 
 	}
 	
 }

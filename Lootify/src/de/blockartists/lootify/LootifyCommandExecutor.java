@@ -20,11 +20,11 @@ public class LootifyCommandExecutor implements CommandExecutor {
 	public static String MESSAGE_NO_PERMISSION = ChatColor.RED + "Du hast keine Berechtigung";
 	public static String MESSAGE_NOT_ENOUGH_ARGS = ChatColor.RED + "Nicht genug Argumente";
 	public static String MESSAGE_RELOADED = ChatColor.GREEN + "Konfigurationsdateien neugeladen";
-	public static String MESSAGE_ITEM_CREATED = ChatColor.GREEN + "Item wurde erstellt";
+	public static String MESSAGE_ITEM_CREATED = ChatColor.GREEN + "Item wurde erstellt";  
 	
 	public LootifyCommandExecutor(Lootify lootify) {
 		this.lootify = lootify;
-	}
+	} 
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

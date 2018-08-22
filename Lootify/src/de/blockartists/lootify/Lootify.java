@@ -26,7 +26,7 @@ public class Lootify extends JavaPlugin implements TabCompleter {
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
 		getCommand("lootify").setExecutor(new LootifyCommandExecutor(this));
 	}
-	
+	 
 	@Override public void onDisable() {}
 	
 	// TODO: Outsource

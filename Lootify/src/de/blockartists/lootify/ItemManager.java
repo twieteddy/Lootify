@@ -77,7 +77,7 @@ public class ItemManager {
 		LootboxItem randomItem = null;
 		Iterator<LootboxItem> iter = items.iterator();
 		while (iter.hasNext()) {
-			LootboxItem item = iter.next();
+			LootboxItem item = iter.next(); 
 			
 			if ((random >= lifted) && (random < lifted + item.getWeight())) {
 				randomItem = item;
