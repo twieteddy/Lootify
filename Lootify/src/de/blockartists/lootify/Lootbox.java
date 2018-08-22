@@ -1,7 +1,6 @@
 package de.blockartists.lootify;
 
 import java.util.ArrayList;
-
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -9,9 +8,9 @@ import org.bukkit.inventory.Inventory;
 
 public class Lootbox {
 	private Lootify lootify = null;
-	private String identifier = null; // Prefix for items used to identify lootbox. Should be unique
-	private String message = null; // Message displayed to you after opening the lootbox
-	private List<String> items = new ArrayList<>(); // A path like <path>.<item>. <item> can be ? for random
+	private String identifier = null;
+	private String message = null;
+	private List<String> items = new ArrayList<>();
 	
 	
 	public Lootbox(Lootify lootify, String identifier, String message, List<String> items) {
@@ -28,41 +27,17 @@ public class Lootbox {
 		Inventory inventory = Bukkit.createInventory(null,  9, displayName);
 			
 		for (String uri : items) {
-			inventory.addItem(lootify.getItemsConfig().getItem(uri).getItemStack());
+			inventory.addItem(lootify.getItemManager().getItem(uri).getItemStack());
 		}
-
+		
 		return inventory;
 	}
-}
-
-/*for (String itemKey : itemPath) {
-String [] path = itemKey.split("\\.");
-
-inventory.addItem(lootify.getItemsConfig().getItem(itemKey).getItemStack());
-*/
-// Skip if path isn't splitted
-/*if (path.length != 2) { continue; }
-
-String pool = path[0];
-String name = path[1];
-
-if (name.equals("?")) {
-	int maxWeight = lootify.getItems().get(pool).values().stream().mapToInt(LootboxItem::getWeight).sum(); 
-	int random = ThreadLocalRandom.current().nextInt(maxWeight);
-	int lifted = 0;
 	
-	Iterator<LootboxItem> iter = lootify.getItems().get(pool).values().iterator();
-	while (iter.hasNext()) {
-		LootboxItem item = iter.next();
-		
-		if ((random >= lifted) && (random < lifted + item.getWeight())) {
-			inventory.addItem(item.getItemStack());
-			break;
-		} else {
-			lifted += item.getWeight();
-		}		
+	public void saveLootbox(String name) {
+		lootify.getLootboxesYml().getConfig().set(name + ".identifier", identifier);
+		lootify.getLootboxesYml().getConfig().set(name + ".message", message);
+		lootify.getLootboxesYml().getConfig().set(name + ".items", items);
+		lootify.getLootboxesYml().save();
 	}
-} else {
-	inventory.addItem(this.lootify.getItems().get(pool).get(name).getItemStack());
+	
 }
-}*/

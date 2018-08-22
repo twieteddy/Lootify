@@ -4,27 +4,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Lootify extends JavaPlugin {
-	private LootifyLogger log = null;
-	
+// TODO: Implement TabCompleter
+public class Lootify extends JavaPlugin implements TabCompleter {
 	private LootifyConfig configYml = null;
 	private LootifyConfig lootboxesYml = null;
-	private ItemsConfig itemsConfig = null;
-	
+	private ItemManager itemsConfig = null;
 	private Map<String, Lootbox> lootboxes = null;
 	
 	@Override
-	public void onEnable() {
-		log = new LootifyLogger(this.getName());
-		
+	public void onEnable() {		
 		configYml = new LootifyConfig(this, "config.yml");
 		lootboxesYml = new LootifyConfig(this, "lootboxes.yml");
-		itemsConfig = new ItemsConfig(this);
-		
+		itemsConfig = new ItemManager(this);
 		lootboxes = loadLootboxes();
 		
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
@@ -33,6 +29,7 @@ public class Lootify extends JavaPlugin {
 	
 	@Override public void onDisable() {}
 	
+	// TODO: Outsource
 	private HashMap<String, Lootbox> loadLootboxes() {
 		YamlConfiguration lootboxesCfg = lootboxesYml.getConfig();
 		HashMap<String, Lootbox> loot = new HashMap<>();
@@ -48,19 +45,19 @@ public class Lootify extends JavaPlugin {
 
 			// Make sure that identifier is not empty
 			if (identifier.isEmpty()) {
-				log.info("Skipping lootbox " + box + ". Identifier is empty");
+				getLogger().info("Skipping lootbox " + box + ". Identifier is empty");
 				continue;
 			}
 			
 			// Continue with next box if index already exists
 			if (loot.containsKey(identifier)) {
-				log.info("Skipping lootbox " + box + ". Identifier already exists");
+				getLogger().info("Skipping lootbox " + box + ". Identifier already exists");
 				continue;
 			}
 			
 			// Check if lootbox has items
 			if (items.isEmpty()) {
-				log.info("Skipping lootbox " + box + ". It has no items");
+				getLogger().info("Skipping lootbox " + box + ". It has no items");
 				continue;
 			}
 			
@@ -70,10 +67,9 @@ public class Lootify extends JavaPlugin {
 		
 		return loot;
 	}
-		
-	public LootifyLogger getLootifyLogger() { return this.log; }
+	
 	public LootifyConfig getConfigYml() { return this.configYml; }
 	public LootifyConfig getLootboxesYml() { return this.lootboxesYml; }
-	public ItemsConfig getItemsConfig() { return this.itemsConfig; }
+	public ItemManager getItemManager() { return this.itemsConfig; }
 	public Map<String, Lootbox> getLootboxes() { return this.lootboxes; }
 }

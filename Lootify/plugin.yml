@@ -1,9 +1,16 @@
 name: Lootify
-main: de.blockartists.lootify.Lootify
 version: 0.1
+description: Create lootboxes with random or fixed items and custom probabilty.
+
+author: teddify
+authors: []
+website: https://teddify.de
+
+main: de.blockartists.lootify.Lootify
+database: false
 api-version: 1.12.2
 
 commands:
   lootify:
     description: Controls the lootbox system
-    usage: /lootify <blabla>
+    usage: /lootify help

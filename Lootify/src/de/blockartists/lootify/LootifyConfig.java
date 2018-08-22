@@ -6,14 +6,13 @@ import java.io.IOException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class LootifyConfig {
-	private LootifyLogger log = null;
-	
+	private Lootify lootify = null;
 	private YamlConfiguration config = null;
 	private File file = null;
 	private String filename = null;
 	
 	public LootifyConfig(Lootify lootify, String filename) {
-		this.log = lootify.getLootifyLogger();
+		this.lootify = lootify;
 		this.filename = filename;
 		
 		if (!lootify.getDataFolder().exists()) {
@@ -26,7 +25,7 @@ public class LootifyConfig {
 			try {
 				file.createNewFile();
 			} catch (IOException e) {
-				log.severe("Couldn't create " + filename);
+				lootify.getLogger().severe("Couldn't create " + filename);
 			}
 		}		
 		config = YamlConfiguration.loadConfiguration(file);
@@ -36,11 +35,11 @@ public class LootifyConfig {
 		try {
 			config.save(file);
 		} catch (IOException e) {
-			log.severe("Couldn't save " + filename);
+			lootify.getLogger().severe("Couldn't save " + filename);
 		}
 	}
 	
-	public void copyDefaults(boolean valuesFromDefaultConfig) {config.options().copyDefaults(valuesFromDefaultConfig);}
+	public void copyDefaults(boolean defaultValues) {config.options().copyDefaults(defaultValues);}
 	public void reload() { config = YamlConfiguration.loadConfiguration(file); }
 	public YamlConfiguration getConfig() { return this.config; }
 }
