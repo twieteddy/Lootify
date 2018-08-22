@@ -8,7 +8,4 @@ Lootify turns your items into one-time lootable inventories with preset or rando
 * Or use it to save your custom items. Re-create them with `/lootify get item MyItem`
 * Organize your items with pools by grouping them like Group.MyItem
 
-Links
------
-
 [![Visit my website](https://teddify.de/assets/img/teddify.png)](https://teddify.de)
