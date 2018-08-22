@@ -21,7 +21,7 @@ public class Lootify extends JavaPlugin implements TabCompleter {
 		configYml = new LootifyConfig(this, "config.yml");
 		lootboxesYml = new LootifyConfig(this, "lootboxes.yml");
 		itemsConfig = new ItemManager(this);
-		lootboxes = loadLootboxes();
+		lootboxes = loadLootboxes(); 
 		
 		getServer().getPluginManager().registerEvents(new LootifyListener(this), this);
 		getCommand("lootify").setExecutor(new LootifyCommandExecutor(this));
