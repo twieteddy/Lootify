@@ -11,4 +11,4 @@ Lootify turns your items into one-time lootable inventories with preset or rando
 Links
 -----
 
-* [Visit my website](https://teddify.de)
+[![Visit my website](https://teddify.de/assets/img/teddify.png)](https://teddify.de)
