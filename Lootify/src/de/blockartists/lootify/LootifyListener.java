@@ -2,7 +2,6 @@ package de.blockartists.lootify;
 
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;

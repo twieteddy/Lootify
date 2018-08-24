@@ -156,4 +156,8 @@ public class ItemManager {
 		return true;
 	}
 	
+	public void clearCache() {
+		cache.clear();
+	}
+	
 }

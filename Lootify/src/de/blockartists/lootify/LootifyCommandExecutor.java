@@ -65,7 +65,7 @@ public class LootifyCommandExecutor implements CommandExecutor {
 			}
 			return createResult;
 			
-			
+
 			
 		case "delete":
 			if (name.isEmpty()) {
@@ -112,7 +112,9 @@ public class LootifyCommandExecutor implements CommandExecutor {
 			player.sendMessage("Noch nicht implementiert");
 			return false;
 			
-			
+		case "clearcache":
+			lootify.getItemManager().clearCache();
+			return true;
 			
 		default: displayHelp(player);
 		}
@@ -134,6 +136,7 @@ public class LootifyCommandExecutor implements CommandExecutor {
 			return false;		
 		return lootify.getItemManager().deleteItem(name);
 	}
+	
 	
 	
 	
