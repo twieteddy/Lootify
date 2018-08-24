@@ -1,4 +1,4 @@
-package de.blockartists.lootify;
+package de.teddify.lootify;
 
 import java.util.HashMap;
 import java.util.List;
